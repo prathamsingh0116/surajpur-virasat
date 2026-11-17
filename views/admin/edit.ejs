@@ -1,0 +1,71 @@
+<%- include("partials/nav") %>
+<%
+const record = item || {};
+const get = (path, fallback="") => path.split(".").reduce((o,k)=>o?.[k],record) ?? fallback;
+const localized = (field,lang) => get(`${field}.${lang}`);
+%>
+<main class="admin-shell max-w-3xl">
+  <div class="mb-5"><p class="admin-kicker">CONTENT EDITOR</p><h1 class="admin-title"><%= title %></h1></div>
+  <form class="admin-panel space-y-4" method="POST" action="<%= record._id ? `/admin/${type}/${record._id}?_method=PUT` : `/admin/${type}` %>">
+    <% if(["wildlife","flora"].includes(type)){ %>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Name (English)<input class="form-control" name="nameEn" required value="<%= localized('name','en') %>"></label><label class="admin-label">Name (Hindi)<input class="form-control" name="nameHi" required value="<%= localized('name','hi') %>"></label></div>
+      <label class="admin-label">Scientific name<input class="form-control" name="scientificName" value="<%= get('scientificName') %>"></label>
+      <% if(type==="wildlife"){ %><label class="admin-label">Category<select class="form-control" name="category"><% ["mammal","bird","reptile","other"].forEach(c=>{ %><option <%= get("category","mammal")===c?"selected":"" %>><%= c %></option><% }) %></select></label><% } %>
+      <label class="admin-label">Description (English)<textarea class="form-control" name="descriptionEn"><%= localized('description','en') %></textarea></label><label class="admin-label">Description (Hindi)<textarea class="form-control" name="descriptionHi"><%= localized('description','hi') %></textarea></label>
+      <% if(type==="wildlife"){ %><label class="admin-label">Image URL<input class="form-control" name="image" value="<%= get('image') %>"></label><% } %>
+      <label class="admin-check"><input type="checkbox" name="contentVerified" <%= get("contentVerified")?"checked":"" %>> Content verified by authorized source</label>
+    <% } else if(type==="gallery"){ %>
+      <label class="admin-label">Image URL<input class="form-control" name="image" required value="<%= get('image') %>"></label>
+      <label class="admin-label">Show this photo under location
+        <select class="form-control" name="checkpointSlug">
+          <option value="main" <%= get("checkpointSlug","main")==="main"?"selected":"" %>>Main sanctuary gallery</option>
+          <% (checkpoints || []).forEach(cp => { %><option value="<%= cp.slug %>" <%= get("checkpointSlug","main")===cp.slug?"selected":"" %>><%= cp.name?.en || cp.slug %></option><% }) %>
+        </select>
+      </label>
+      <label class="admin-label">Caption (English)<input class="form-control" name="captionEn" value="<%= localized('caption','en') %>"></label><label class="admin-label">Caption (Hindi)<input class="form-control" name="captionHi" value="<%= localized('caption','hi') %>"></label>
+      <label class="admin-label">Alt text (English)<input class="form-control" name="altEn" value="<%= localized('alt','en') %>"></label><label class="admin-label">Alt text (Hindi)<input class="form-control" name="altHi" value="<%= localized('alt','hi') %>"></label>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Photographer / credit<input class="form-control" name="credit" value="<%= get('credit') %>"></label><label class="admin-label">Photo licence<input class="form-control" name="license" value="<%= get('license') %>"></label></div>
+      <label class="admin-label">Original source / licence URL<input class="form-control" name="sourceUrl" type="url" value="<%= get('sourceUrl') %>"></label>
+      <label class="admin-check"><input type="checkbox" name="isLocalPhoto" <%= get("isLocalPhoto")?"checked":"" %>> This photograph was actually taken at this destination</label>
+      <label class="admin-check"><input type="checkbox" name="photoVerified" <%= get("photoVerified")?"checked":"" %>> Usage rights / licence checked</label>
+    <% } else if(type==="checkpoints"){ %>
+      <label class="admin-label">Permanent QR URL slug (e.g. moran-river)<input class="form-control" name="slug" required pattern="[a-z0-9]+(-[a-z0-9]+)*" value="<%= get('slug') %>"></label>
+      <p class="text-xs text-amber-700 bg-amber-50 border border-amber-200 rounded-lg p-3">Important: once QR stickers are printed, do not change this slug. Existing QR codes depend on it.</p>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Name (English)<input class="form-control" name="nameEn" value="<%= localized('name','en') %>"></label><label class="admin-label">Name (Hindi)<input class="form-control" name="nameHi" value="<%= localized('name','hi') %>"></label></div>
+      <label class="admin-label">Description (English)<textarea class="form-control" name="descriptionEn"><%= localized('description','en') %></textarea></label><label class="admin-label">Description (Hindi)<textarea class="form-control" name="descriptionHi"><%= localized('description','hi') %></textarea></label>
+      <label class="admin-label">Detailed information (English)<textarea class="form-control" name="overviewEn"><%= localized('overview','en') %></textarea></label>
+      <label class="admin-label">Detailed information (Hindi)<textarea class="form-control" name="overviewHi"><%= localized('overview','hi') %></textarea></label>
+      <label class="admin-label">Visitor safety tips (English)<textarea class="form-control" name="visitorTipsEn"><%= localized('visitorTips','en') %></textarea></label>
+      <label class="admin-label">Visitor safety tips (Hindi)<textarea class="form-control" name="visitorTipsHi"><%= localized('visitorTips','hi') %></textarea></label>
+      <h2 class="admin-section-title">History & local story</h2>
+      <label class="admin-label">History (English)<textarea class="form-control" name="historyEn"><%= localized('history','en') %></textarea></label>
+      <label class="admin-label">History (Hindi)<textarea class="form-control" name="historyHi"><%= localized('history','hi') %></textarea></label>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Story title (English)<input class="form-control" name="storyTitleEn" value="<%= localized('storyTitle','en') %>"></label><label class="admin-label">Story title (Hindi)<input class="form-control" name="storyTitleHi" value="<%= localized('storyTitle','hi') %>"></label></div>
+      <label class="admin-label">Important story (English)<textarea class="form-control" name="storyEn"><%= localized('story','en') %></textarea></label>
+      <label class="admin-label">Important story (Hindi)<textarea class="form-control" name="storyHi"><%= localized('story','hi') %></textarea></label>
+      <h2 class="admin-section-title">Railway access & visitor directions</h2>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Railway station name<input class="form-control" name="railwayStationName" value="<%= get('railway.stationName','Surajpur Road Railway Station') %>"></label><label class="admin-label">Station code<input class="form-control" name="railwayStationCode" value="<%= get('railway.stationCode','SJPR') %>"></label></div>
+      <label class="admin-label">Verified road distance to this checkpoint (km)<input class="form-control" type="number" step="0.1" min="0" name="railwayDistanceKm" value="<%= get('railway.distanceKm') %>"></label>
+      <label class="admin-label">Village-level straight-line reference (km; not exact checkpoint distance)<input class="form-control" type="number" step="0.1" min="0" name="railwayVillageReferenceKm" value="<%= get('railway.villageReferenceKm') %>"></label>
+      <label class="admin-label">Distance basis / caveat<input class="form-control" name="railwayDistanceBasis" value="<%= get('railway.distanceBasis') %>"></label>
+      <label class="admin-label">Railway note (English)<textarea class="form-control" name="railwayNoteEn"><%= localized('railway.note','en') %></textarea></label>
+      <label class="admin-label">Railway note (Hindi)<textarea class="form-control" name="railwayNoteHi"><%= localized('railway.note','hi') %></textarea></label>
+      <label class="admin-label">Google Maps destination query / full address<input class="form-control" name="destination" value="<%= get('destination') %>"></label>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Latitude (optional)<input class="form-control" type="number" step="any" name="latitude" value="<%= get('coordinates.lat') %>"></label><label class="admin-label">Longitude (optional)<input class="form-control" type="number" step="any" name="longitude" value="<%= get('coordinates.lng') %>"></label></div>
+      <label class="admin-label">Source references (one per line: Title | https://... )<textarea class="form-control" name="sourcesText" rows="5"><%= (get('sources',[]) || []).map(source=>`${source.title} | ${source.url}`).join('\n') %></textarea></label>
+      <label class="admin-label">Hero image URL<input class="form-control" name="heroImage" value="<%= get('heroImage') %>"></label>
+      <label class="admin-label">Google Maps directions URL<input class="form-control" name="mapUrl" value="<%= get('mapUrl') %>"></label>
+      <label class="admin-label">Google Maps embed URL<input class="form-control" name="mapEmbedUrl" value="<%= get('mapEmbedUrl') %>"></label>
+      <label class="admin-label">Icon name<input class="form-control" name="icon" value="<%= get('icon','map-pin') %>"></label>
+      <label class="admin-check"><input type="checkbox" name="contentVerified" <%= get("contentVerified")?"checked":"" %>> Location details verified</label>
+    <% } else { %>
+      <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Label (English)<input class="form-control" name="labelEn" value="<%= localized('label','en') %>"></label><label class="admin-label">Label (Hindi)<input class="form-control" name="labelHi" value="<%= localized('label','hi') %>"></label></div>
+      <label class="admin-label">Phone number<input class="form-control" name="phone" required value="<%= get('phone') %>"></label>
+      <label class="admin-label">Description (English)<textarea class="form-control" name="descriptionEn"><%= localized('description','en') %></textarea></label><label class="admin-label">Description (Hindi)<textarea class="form-control" name="descriptionHi"><%= localized('description','hi') %></textarea></label>
+      <label class="admin-check"><input type="checkbox" name="verified" <%= get("verified")?"checked":"" %>> Phone number officially verified</label>
+    <% } %>
+    <label class="admin-label">Sort order<input class="form-control" type="number" name="sortOrder" value="<%= get('sortOrder',0) %>"></label>
+    <label class="admin-check"><input type="checkbox" name="active" <%= get("active")!==false?"checked":"" %>> Active / visible on tourist website</label>
+    <div class="flex gap-2 pt-2"><button class="admin-btn" type="submit">Save changes</button><a class="admin-btn secondary" href="/admin/<%= type %>">Cancel</a></div>
+  </form>
+</main>

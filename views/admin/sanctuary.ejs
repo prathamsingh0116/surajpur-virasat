@@ -1,0 +1,14 @@
+<%- include("partials/nav") %>
+<main class="admin-shell max-w-3xl"><p class="admin-kicker">SITE CONTENT</p><h1 class="admin-title mb-5">Sanctuary information</h1>
+<form class="admin-panel space-y-4" action="/admin/sanctuary?_method=PUT" method="POST">
+  <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Name (English)<input class="form-control" name="nameEn" value="<%= sanctuary?.name?.en || '' %>"></label><label class="admin-label">Name (Hindi)<input class="form-control" name="nameHi" value="<%= sanctuary?.name?.hi || '' %>"></label></div>
+  <label class="admin-label">Tagline (English)<textarea class="form-control" name="taglineEn"><%= sanctuary?.tagline?.en || '' %></textarea></label><label class="admin-label">Tagline (Hindi)<textarea class="form-control" name="taglineHi"><%= sanctuary?.tagline?.hi || '' %></textarea></label>
+  <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">District (English)<input class="form-control" name="districtEn" value="<%= sanctuary?.district?.en || '' %>"></label><label class="admin-label">District (Hindi)<input class="form-control" name="districtHi" value="<%= sanctuary?.district?.hi || '' %>"></label></div>
+  <div class="grid sm:grid-cols-2 gap-3"><label class="admin-label">Area<input class="form-control" name="area" value="<%= sanctuary?.area || '' %>"></label><label class="admin-label">Established<input class="form-control" name="established" value="<%= sanctuary?.established || '' %>"></label></div>
+  <label class="admin-label">Coordinates<input class="form-control" name="coordinates" value="<%= sanctuary?.coordinates || '' %>"></label>
+  <label class="admin-label">Google Maps URL<input class="form-control" name="mapUrl" value="<%= sanctuary?.mapUrl || '' %>"></label>
+  <label class="admin-label">Google Maps embed URL<input class="form-control" name="mapEmbedUrl" value="<%= sanctuary?.mapEmbedUrl || '' %>"></label>
+  <label class="admin-label">Hero image URL<input class="form-control" name="heroImage" value="<%= sanctuary?.heroImage || '' %>"></label>
+  <label class="admin-check"><input type="checkbox" name="factsVerified" <%= sanctuary?.factsVerified?"checked":"" %>> Sanctuary facts reviewed and verified by authorized source</label>
+  <button class="admin-btn" type="submit">Save sanctuary profile</button>
+</form></main>

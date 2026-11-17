@@ -1,0 +1,137 @@
+<%
+const L = lang || "en";
+const tr = (en,hi) => L === "hi" ? (hi || en) : en;
+const s = sanctuary || {};
+const mainDestination = "Surajpur District Headquarters, Surajpur, Chhattisgarh, India";
+const stationDirections = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent("Surajpur Road Railway Station, Chhattisgarh, India")}&destination=${encodeURIComponent(mainDestination)}&travelmode=driving`;
+%>
+<header class="tp-header sticky top-0 z-40">
+  <div class="tp-header-inner max-w-6xl mx-auto px-4 sm:px-6">
+    <a href="/" class="tp-brand" aria-label="Surajpur Virasat home"><span class="tp-brand-mark"><img src="/images/surajpur-virasat-symbol.svg" alt="" width="39" height="39"></span><span class="tp-brand-copy"><strong>Surajpur<span>Virasat</span></strong><small>HERITAGE · NATURE · STORIES</small></span></a>
+    <div class="tp-header-tools">
+      <a href="/admin/login" class="tp-admin-link hidden sm:inline">Admin</a>
+      <a class="tp-language" href="?lang=<%= L === 'en' ? 'hi' : 'en' %>"><i data-lucide="languages"></i><span><%= L === "en" ? "हिन्दी" : "English" %></span></a>
+      <button id="themeToggle" class="tp-icon-button" aria-label="Toggle light or dark theme"><i data-lucide="moon"></i></button>
+    </div>
+  </div>
+</header>
+
+<div class="tp-explore-strip">
+  <div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+    <label for="locationExplorer"><i data-lucide="compass"></i><span><%= tr("Explore locations","स्थान देखें") %></span></label>
+    <select id="locationExplorer" class="tp-location-select" data-lang="<%= L %>" aria-label="Choose another sanctuary location">
+      <option value="/" selected><%= tr("Surajpur heritage & nature","सूरजपुर की विरासत और प्रकृति") %></option>
+      <% checkpoints.forEach(cp => { %><option value="/location/<%= cp.slug %>"><%= cp.name?.[L] || cp.slug %></option><% }) %>
+    </select>
+    <p class="hidden md:block"><%= tr("Explore every place without scanning another QR code.","दूसरा QR स्कैन किए बिना अन्य स्थानों की जानकारी देखें।") %></p>
+  </div>
+</div>
+
+<main class="tp-main max-w-6xl mx-auto px-3.5 sm:px-6">
+  <section class="tp-hero">
+    <img src="https://cdn.s3waas.gov.in/s345645a27c4f1adc8a7a835976064a86d/uploads/2018/09/2018100113.jpg" alt="Kudargarh temple in Surajpur district" class="tp-hero-image" fetchpriority="high">
+    <div class="tp-hero-shade"></div>
+    <div class="tp-hero-content">
+      <p class="tp-eyebrow"><i data-lucide="map-pin"></i><%= s.district?.[L] || tr("Surajpur, Chhattisgarh, India","सूरजपुर, छत्तीसगढ़, भारत") %></p>
+      <h1><%= tr("Discover Surajpur’s Heritage & Nature","सूरजपुर की विरासत और प्रकृति को जानें") %></h1>
+      <p class="tp-hero-description"><%= tr("Explore ancient temples, sacred landscapes, waterfalls, hills, tribal heritage and wildlife across Surajpur district.","सूरजपुर जिले के प्राचीन मंदिरों, पवित्र स्थलों, जलप्रपातों, पहाड़ियों, जनजातीय विरासत और वन्यजीवों को जानें।") %></p>
+      <div class="tp-actions" aria-label="Visitor actions">
+        <button id="audioButton" class="tp-action tp-action-listen" type="button">
+          <i data-lucide="volume-2" id="audioIcon"></i><span id="audioLabel"><%= tr("Listen Audio Tour","ऑडियो गाइड सुनें") %></span>
+        </button>
+        <button type="button" class="tp-action tp-action-glass" data-current-directions data-destination="<%= mainDestination %>">
+          <i data-lucide="navigation"></i><span><%= tr("Directions","रास्ता देखें") %></span>
+        </button>
+        <button id="sosOpen" class="tp-action tp-action-sos" type="button">
+          <i data-lucide="phone-call"></i><span>SOS</span>
+        </button>
+        <button id="shareButton" class="tp-action tp-action-glass" type="button">
+          <i data-lucide="share-2"></i><span><%= tr("Share","शेयर करें") %></span>
+        </button>
+      </div>
+      <div id="speechBanner" class="tp-speech-status hidden" aria-live="polite"><span class="tp-speaking-dot"></span><span id="speechStatus"><%= tr("Audio guide is playing","ऑडियो गाइड चल रहा है") %></span></div>
+    </div>
+    <div class="tp-hero-caption"><span><i data-lucide="leaf"></i><%= tr("Discover nature. Respect wildlife.","प्रकृति को जानें, वन्यजीवों का सम्मान करें।") %></span></div>
+  </section>
+
+
+  <section class="mt-6" aria-labelledby="districtDestinationsTitle">
+    <div class="tp-content-intro"><div><p class="tp-section-eyebrow"><%= tr("PLACES TO EXPLORE","घूमने योग्य स्थान") %></p><h2 id="districtDestinationsTitle"><%= tr("Explore Surajpur","सूरजपुर की सैर करें") %></h2></div><p><%= tr("Choose a destination to read its history, stories, gallery and travel information. No extra QR scan is needed.","किसी स्थान को चुनकर उसका इतिहास, कहानियाँ, फोटो और यात्रा जानकारी देखें। दोबारा QR स्कैन करने की जरूरत नहीं।") %></p></div>
+    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 mt-4">
+      <% (checkpoints || []).forEach(cp => { %>
+        <a href="/location/<%= cp.slug %>" class="content-card group block overflow-hidden !p-0 hover:-translate-y-1 transition-transform">
+          <div class="aspect-[16/10] overflow-hidden bg-stone-200"><img src="<%= cp.heroImage || 'https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=900&q=80' %>" alt="<%= cp.name?.[L] || cp.slug %>" class="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500" loading="lazy"></div>
+          <div class="p-4"><h3 class="font-extrabold text-lg leading-snug"><%= cp.name?.[L] || cp.slug %></h3><p class="body-copy mt-2 line-clamp-3"><%= cp.description?.[L] || '' %></p><span class="inline-flex items-center gap-2 mt-3 text-emerald-700 dark:text-emerald-300 font-bold text-sm"><%= tr("Explore this place","इस जगह को देखें") %><i data-lucide="arrow-up-right" class="w-4 h-4"></i></span></div>
+        </a>
+      <% }) %>
+    </div>
+  </section>
+
+  <section class="tp-content-intro">
+    <div><p class="tp-section-eyebrow"><%= tr("EXPLORE SURAJPUR","सूरजपुर को जानें") %></p><h2><%= tr("Discover Surajpur Heritage & Nature","सूरजपुर की विरासत और प्रकृति देखें") %></h2></div>
+    <p><%= tr("Explore the sanctuary's story, wildlife, visitor information and photographs below.","नीचे अभयारण्य का इतिहास, वन्यजीव, पर्यटक जानकारी और तस्वीरें देखें।") %></p>
+  </section>
+
+  <div class="tp-accordion-list">
+    <details class="tp-accordion" open>
+      <summary><span class="tp-accordion-icon"><i data-lucide="book-open"></i></span><span class="tp-accordion-title"><%= tr("About & History","परिचय एवं इतिहास") %><small><%= tr("Background, landscape and conservation","पृष्ठभूमि, प्राकृतिक परिवेश और संरक्षण") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body">
+        <article class="content-card tp-inner-card">
+          <h3 class="section-title"><i data-lucide="trees" class="text-emerald-600"></i><%= tr("Sanctuary Background & Significance","अभयारण्य की पृष्ठभूमि एवं महत्व") %></h3>
+          <% (s.about?.[L] || []).forEach(p => { %><p class="body-copy"><%= p %></p><% }) %>
+        </article>
+        <div class="grid md:grid-cols-2 gap-4 mt-4">
+          <% (s.geography || []).forEach(g => { %><article class="content-card flex gap-3"><div class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-600 shrink-0"><i data-lucide="<%= g.icon || 'trees' %>"></i></div><div><h3 class="font-bold"><%= g.title?.[L] %></h3><p class="body-copy"><%= g.description?.[L] %></p></div></article><% }) %>
+        </div>
+        <% if(s.tigerReserve?.title?.[L] || s.tigerReserve?.description?.[L]) { %>
+          <article class="content-card mt-4 bg-amber-50 dark:bg-stone-900 border-amber-200 dark:border-amber-900"><h3 class="font-bold text-lg"><%= s.tigerReserve?.title?.[L] %></h3><p class="body-copy"><%= s.tigerReserve?.description?.[L] %></p></article>
+        <% } %>
+      </div>
+    </details>
+
+    <details class="tp-accordion">
+      <summary><span class="tp-accordion-icon"><i data-lucide="paw-print"></i></span><span class="tp-accordion-title"><%= tr("Wildlife & Flora","वन्यजीव एवं वनस्पति") %><small><%= tr("Species and forest information","वन्यजीवों और वनस्पतियों की जानकारी") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body space-y-4">
+        <article class="content-card"><h3 class="section-title"><i data-lucide="paw-print" class="text-emerald-600"></i><%= tr("Prominent Wildlife Species","प्रमुख वन्यजीव प्रजातियाँ") %></h3><p class="body-copy mb-4"><%= tr("Wildlife information currently listed in the project content. Species presence should be confirmed with the Forest Department.","परियोजना में दी गई वन्यजीव जानकारी। प्रजातियों की उपस्थिति वन विभाग से सत्यापित करें।") %></p>
+          <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-3"><% wildlife.forEach(w => { %><div class="p-4 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><div class="flex justify-between gap-2 flex-wrap"><h4 class="font-bold text-sm"><%= w.name?.[L] %></h4><span class="text-[10px] italic text-emerald-600"><%= w.scientificName %></span></div><p class="body-copy mt-2"><%= w.description?.[L] %></p><% if(!w.contentVerified){ %><span class="text-[9px] text-amber-700 dark:text-amber-300">● <%= tr("Pending verification","पुष्टि लंबित") %></span><% } %></div><% }) %></div>
+        </article>
+        <article class="content-card"><h3 class="section-title"><i data-lucide="sprout" class="text-emerald-600"></i><%= tr("Forest Types & Flora","वन प्रकार एवं वनस्पति") %></h3><div class="grid sm:grid-cols-2 gap-3"><% flora.forEach(f=>{ %><div class="p-4 rounded-xl bg-stone-50 dark:bg-stone-800/70"><h4 class="font-bold text-sm"><%= f.name?.[L] %></h4><p class="body-copy"><%= f.description?.[L] %></p></div><% }) %></div></article>
+      </div>
+    </details>
+
+    <details class="tp-accordion">
+      <summary><span class="tp-accordion-icon"><i data-lucide="heart-handshake"></i></span><span class="tp-accordion-title"><%= tr("Ramkola Elephant Centre","रामकोला हाथी केंद्र") %><small><%= tr("Rescue and elephant care information","रेस्क्यू और हाथी देखभाल की जानकारी") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body"><article class="content-card"><div class="flex items-center gap-3 mb-4"><div class="p-3 rounded-xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700"><i data-lucide="heart-handshake"></i></div><div><h3 class="font-bold text-lg"><%= s.ramkola?.title?.[L] %></h3><p class="text-xs text-emerald-700 dark:text-emerald-400"><%= s.ramkola?.subtitle?.[L] %></p></div></div><p class="body-copy"><%= s.ramkola?.description?.[L] %></p><div class="grid sm:grid-cols-3 gap-3 mt-5"><% (s.ramkola?.points || []).forEach(point=>{ %><div class="p-4 rounded-xl bg-stone-50 dark:bg-stone-800 text-center"><i data-lucide="<%= point.icon || 'leaf' %>" class="mx-auto mb-2 text-emerald-600"></i><h4 class="font-bold text-sm"><%= point.title?.[L] %></h4><p class="body-copy"><%= point.description?.[L] %></p></div><% }) %></div></article></div>
+    </details>
+
+    <details class="tp-accordion">
+      <summary><span class="tp-accordion-icon"><i data-lucide="images"></i></span><span class="tp-accordion-title"><%= tr("Photo Gallery","फोटो गैलरी") %><small><%= tr("Reference wildlife & landscape photographs","वन्यजीव एवं प्राकृतिक दृश्य की संदर्भ तस्वीरें") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body"><article class="content-card"><p class="body-copy mb-4"><%= tr("The main sanctuary gallery contains reference images. The QR destination galleries include official district photographs where available and clearly labelled illustrative reference images elsewhere. Replace illustrative images with authorised local photographs before public launch.","पहले ड्राफ्ट में 20 संदर्भ तस्वीरें जोड़ी गई हैं। ये प्रतिनिधि स्टॉक / विकिमीडिया तस्वीरें हैं, तमोर पिंगला में ली गई प्रमाणित तस्वीरें नहीं। सार्वजनिक लॉन्च से पहले इन्हें अधिकृत स्थानीय तस्वीरों से बदलें।") %></p><% if(gallery.length){ %><div class="grid grid-cols-2 md:grid-cols-3 gap-3"><% gallery.forEach(g=>{ %><div class="gallery-item"><button class="gallery-tile" data-image="<%= g.image %>" data-caption="<%= g.caption?.[L] %>" data-credit="<%= [g.credit,g.license].filter(Boolean).join(" · ") %>" data-source-url="<%= g.sourceUrl || '' %>"><img src="<%= g.image %>" alt="<%= g.alt?.[L] || g.caption?.[L] %>" loading="lazy"><span><%= g.caption?.[L] %></span></button><p class="photo-credit"><%= tr("Photo credit:","फोटो श्रेय:") %> <%= g.credit || "Source" %> · <%= g.license || "Licence details" %> <% if(g.sourceUrl){ %><a href="<%= g.sourceUrl %>" target="_blank" rel="noopener noreferrer"><%= tr("Source","स्रोत") %></a><% } %></p></div><% }) %></div><% } else { %><p class="body-copy"><%= tr("No photographs have been added yet.","अभी कोई तस्वीर नहीं जोड़ी गई है।") %></p><% } %></article></div>
+    </details>
+
+    <details class="tp-accordion">
+      <summary><span class="tp-accordion-icon"><i data-lucide="map"></i></span><span class="tp-accordion-title"><%= tr("Map & Distance","नक्शा एवं दूरी") %><small><%= tr("Location, access routes and best season","स्थान, पहुँच मार्ग और घूमने का सर्वोत्तम समय") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body"><article class="content-card space-y-4"><div><p class="body-copy"><%= tr("Coordinates:","निर्देशांक:") %> <%= s.coordinates %> | <%= tr("Surajpur, Chhattisgarh","सूरजपुर, छत्तीसगढ़") %></p></div><div class="grid sm:grid-cols-3 gap-3"><% (s.distances || []).forEach(d=>{ %><div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800"><span class="text-xs text-stone-500"><%= d.label?.[L] %></span><p class="text-lg font-bold text-emerald-600"><%= d.distance %></p><p class="body-copy"><%= d.description?.[L] %></p></div><% }) %><div class="p-3 rounded-xl bg-stone-50 dark:bg-stone-800"><span class="text-xs text-stone-500"><%= tr("Best Season","सर्वोत्तम समय") %></span><p class="text-lg font-bold text-amber-600"><%= s.bestSeason?.[L] %></p></div></div><div class="flex flex-wrap gap-3"><button type="button" class="tp-access-button" data-current-directions data-destination="<%= mainDestination %>"><i data-lucide="map-pin"></i><%= tr("Directions from my current location","मेरी वर्तमान लोकेशन से रास्ता") %></button><a href="<%= stationDirections %>" target="_blank" rel="noopener noreferrer" class="tp-access-button secondary"><i data-lucide="train-front"></i><%= tr("Route from Surajpur Road Station","सूरजपुर रोड स्टेशन से रास्ता") %></a></div><p class="body-copy"><%= tr("The district website lists Surajpur as the nearest railway station. A separate village-level reference estimates approximately 42 km straight-line from Ramkola village to Surajpur Road; it is not road distance or the distance to every QR point. Please check the live route.","जिला वेबसाइट सूरजपुर को निकटतम रेलवे स्टेशन बताती है। एक अलग गाँव-स्तरीय स्रोत रामकोला गाँव से सूरजपुर रोड तक लगभग 42 किमी सीधी दूरी बताता है; यह सड़क दूरी या हर QR स्थान की दूरी नहीं है। लाइव मार्ग देखें।") %></p><% if(s.mapEmbedUrl){ %><div class="map-frame"><iframe title="Tamor Pingla map" src="<%= s.mapEmbedUrl %>" loading="lazy" allowfullscreen></iframe></div><% } %></article></div>
+    </details>
+
+    <details class="tp-accordion">
+      <summary><span class="tp-accordion-icon"><i data-lucide="book-marked"></i></span><span class="tp-accordion-title"><%= tr("Sources & references","स्रोत एवं संदर्भ") %><small><%= tr("Government records and secondary reading","सरकारी रिकॉर्ड एवं अन्य संदर्भ") %></small></span><i data-lucide="chevron-down" class="tp-accordion-chevron"></i></summary>
+      <div class="tp-accordion-body"><div class="content-card"><ul class="tp-source-list">
+        <li><a href="https://surajpur.nic.in/en/places-of-interest/" target="_blank" rel="noopener noreferrer">Surajpur District Government — Places of Interest</a></li>
+        <li><a href="https://division-surguja.cg.gov.in/places-centres/tamor-pingla/" target="_blank" rel="noopener noreferrer">Divisional Commissioner Surguja — Tamor Pingla</a></li>
+        <li><a href="https://www.pib.gov.in/PressReleasePage.aspx?PRID=2074302&lang=1&reg=3" target="_blank" rel="noopener noreferrer">Press Information Bureau — Tiger Reserve notification (18 November 2024)</a></li>
+        <li><a href="https://nationalcampa.nic.in/dashboard/PublicationPDF/668f7f96640f3.pdf" target="_blank" rel="noopener noreferrer">Government of India CAMPA — Pingla Elephant Rescue & Rehabilitation Centre</a></li>
+        <li><a href="https://jansampark.cg.gov.in/Janman/EN_AUG2025/EN_August.pdf" target="_blank" rel="noopener noreferrer">Chhattisgarh Janman (August 2025) — sanctuary and railway context</a></li>
+        <li><a href="https://www.naidunia.com/chhattisgarh/ambikapur-chhattisgarh-news-forest-department-discovers-remains-of-ancient-fort-amidst-dense-forest-6229537" target="_blank" rel="noopener noreferrer">Naidunia (22 August 2020) — reported Tamor Hill remains; not archaeological confirmation</a></li>
+        <li><a href="https://en.wikipedia.org/wiki/Tamor_Pingla_Wildlife_Sanctuary" target="_blank" rel="noopener noreferrer">Wikipedia — secondary reference (details need verification)</a></li>
+      </ul><p class="body-copy"><%= tr("Visitor information, access rules and wildlife sightings can change. Confirm permissions and current conditions with the Forest Department before travelling.","पर्यटक जानकारी, प्रवेश नियम और वन्यजीवों की उपस्थिति बदल सकती है। यात्रा से पहले वन विभाग से अनुमति और वर्तमान स्थिति की पुष्टि करें।") %></p></div></div>
+    </details>
+  </div>
+
+  <footer class="tp-footer"><span>© <%= new Date().getFullYear() %> Surajpur Virasat</span><span><%= tr("Respect heritage and nature. Leave no litter.","विरासत और प्रकृति का सम्मान करें। कचरा न फैलाएँ।") %></span></footer>
+</main>
+
+<div id="sosModal" class="modal-backdrop hidden"><div class="modal-card max-w-md"><button class="modal-close" data-close="sosModal" aria-label="Close">×</button><div class="text-center"><div class="inline-flex p-3 bg-rose-100 text-rose-700 rounded-xl"><i data-lucide="phone-call"></i></div><h2 class="font-bold text-lg mt-2"><%= tr("Wildlife Emergency & Forest Guard SOS","वन्यजीव आपातकालीन एवं वनकर्मी SOS") %></h2><p class="body-copy"><%= tr("For emergencies, contact the relevant authorities. Non-emergency contact details are marked until officially verified.","आपात स्थिति में संबंधित अधिकारियों से संपर्क करें। गैर-आपातकालीन नंबरों की आधिकारिक पुष्टि लंबित है।") %></p></div><div class="space-y-2 mt-4"><% contacts.forEach(c=>{ %><a href="tel:<%= c.phone.replace(/[^+\d]/g,'') %>" class="contact-row"><span><strong><%= c.label?.[L] %></strong><small><%= c.verified ? tr("Verified general emergency contact","सत्यापित सामान्य आपातकालीन नंबर") : tr("Verify before relying on this number","इस नंबर की पुष्टि करें") %></small></span><b><%= c.phone %></b></a><% }) %></div></div></div>
+<div id="lightbox" class="modal-backdrop hidden"><div class="lightbox-card"><button class="modal-close" data-close="lightbox" aria-label="Close">×</button><img id="lightboxImage" src="" alt=""><p id="lightboxCaption"></p><p id="lightboxCredit" class="lightbox-credit"></p></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>window.TP_CONFIG=<%- JSON.stringify({lang:L,speechText:s.speechText?.[L] || [s.name?.[L],s.tagline?.[L],...(s.about?.[L] || [])].filter(Boolean).join(". "),homeUrl:publicBaseUrl,checkpoint:null,destination:mainDestination}).replace(/</g,"\\u003c") %>;</script>

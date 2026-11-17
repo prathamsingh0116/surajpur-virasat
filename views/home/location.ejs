@@ -1,0 +1,81 @@
+<%
+const L = lang || "en";
+const tr = (en,hi) => L === "hi" ? hi : en;
+const name = checkpoint.name?.[L] || checkpoint.slug;
+const description = checkpoint.overview?.[L] || checkpoint.description?.[L] || "";
+const hero = checkpoint.heroImage || "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1800&q=85";
+const mapUrl = checkpoint.mapUrl || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(name + " Surajpur Chhattisgarh")}`;
+const destination = checkpoint.destination || `${name}, Surajpur, Chhattisgarh, India`;
+const stationName = checkpoint.railway?.stationName || "Surajpur Road Railway Station";
+const measuredDistance = checkpoint.railway?.distanceKm;
+const villageReferenceDistance = checkpoint.railway?.villageReferenceKm;
+const stationRoute = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(stationName + " Chhattisgarh India")}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+const narration = [name, description, checkpoint.history?.[L], checkpoint.storyTitle?.[L], checkpoint.story?.[L], checkpoint.railway?.note?.[L], checkpoint.visitorTips?.[L]].filter(Boolean).join(". ");
+%>
+<header class="tp-header sticky top-0 z-40">
+  <div class="tp-header-inner max-w-6xl mx-auto px-4 sm:px-6">
+    <a href="/" class="tp-brand" aria-label="Surajpur Virasat home"><span class="tp-brand-mark"><img src="/images/surajpur-virasat-symbol.svg" alt="" width="39" height="39"></span><span class="tp-brand-copy"><strong>Surajpur<span>Virasat</span></strong><small>HERITAGE · NATURE · STORIES</small></span></a>
+    <div class="tp-header-tools"><a href="/admin/login" class="tp-admin-link hidden sm:inline">Admin</a><a class="tp-language" href="/location/<%= checkpoint.slug %>?lang=<%= L === 'en' ? 'hi' : 'en' %>"><i data-lucide="languages"></i><span><%= L === "en" ? "हिन्दी" : "English" %></span></a><button id="themeToggle" class="tp-icon-button" aria-label="Toggle light or dark theme"><i data-lucide="moon"></i></button></div>
+  </div>
+</header>
+
+<div class="tp-explore-strip"><div class="max-w-6xl mx-auto px-4 sm:px-6 flex items-center justify-between gap-3">
+  <label for="locationExplorer"><i data-lucide="compass"></i><span><%= tr("Explore locations","स्थान देखें") %></span></label>
+  <select id="locationExplorer" class="tp-location-select" data-lang="<%= L %>" aria-label="Choose another Surajpur heritage location">
+    <option value="/"><%= tr("Surajpur heritage & nature","सूरजपुर की विरासत और प्रकृति") %></option>
+    <% checkpoints.forEach(cp => { %><option value="/location/<%= cp.slug %>" <%= cp.slug===checkpoint.slug?"selected":"" %>><%= cp.name?.[L] || cp.slug %></option><% }) %>
+  </select>
+  <p class="hidden md:block"><%= tr("No need to scan another QR code to explore.","दूसरी जगह देखने के लिए QR दोबारा स्कैन करने की जरूरत नहीं।") %></p>
+</div></div>
+
+<main class="tp-main max-w-6xl mx-auto px-3.5 sm:px-6 pb-8">
+  <% if(checkpoint.active === false) { %><div class="mt-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm"><strong><%= tr("Notice:","सूचना:") %></strong> <%= tr("This location is no longer listed in Explore. This QR page remains available for visitors who already have its printed QR code.","यह स्थान अब Explore सूची में नहीं है। पहले से छपे QR कोड वाले आगंतुकों के लिए यह पेज उपलब्ध रहेगा।") %></div><% } %>
+  <section class="tp-hero tp-location-hero">
+    <img src="<%= hero %>" alt="<%= name %>" class="tp-hero-image" fetchpriority="high">
+    <div class="tp-hero-shade"></div>
+    <div class="tp-hero-content">
+      <p class="tp-eyebrow"><i data-lucide="map-pin"></i><%= tr("YOU ARE EXPLORING","आप इस स्थान की जानकारी देख रहे हैं") %></p>
+      <h1><%= name %></h1>
+      <p class="tp-hero-description"><%= checkpoint.description?.[L] || description %></p>
+      <div class="tp-actions" aria-label="Visitor actions">
+        <button id="audioButton" class="tp-action tp-action-listen" type="button"><i data-lucide="volume-2" id="audioIcon"></i><span id="audioLabel"><%= tr("Listen Audio Tour","ऑडियो गाइड सुनें") %></span></button>
+        <button type="button" class="tp-action tp-action-glass" data-current-directions data-destination="<%= destination %>"><i data-lucide="navigation"></i><span><%= tr("Directions","रास्ता देखें") %></span></button>
+        <button id="sosOpen" class="tp-action tp-action-sos" type="button"><i data-lucide="phone-call"></i><span>SOS</span></button>
+        <button id="shareButton" class="tp-action tp-action-glass" type="button"><i data-lucide="share-2"></i><span><%= tr("Share","शेयर करें") %></span></button>
+      </div>
+      <div id="speechBanner" class="tp-speech-status hidden" aria-live="polite"><span class="tp-speaking-dot"></span><span id="speechStatus"><%= tr("Audio guide is playing","ऑडियो गाइड चल रहा है") %></span></div>
+    </div>
+    <div class="tp-hero-caption"><span><i data-lucide="leaf"></i><%= tr("Discover nature. Respect wildlife.","प्रकृति को जानें, वन्यजीवों का सम्मान करें।") %></span></div>
+  </section>
+
+  <section class="content-card tp-location-information mt-5">
+    <h2 class="section-title"><i data-lucide="book-open" class="text-emerald-600"></i><%= tr("About this location","इस स्थान के बारे में") %></h2>
+    <p class="body-copy whitespace-pre-line"><%= description || checkpoint.description?.[L] || tr("Location information will be updated by the sanctuary administrator.","इस स्थान की जानकारी व्यवस्थापक द्वारा अपडेट की जाएगी।") %></p>
+    <% if(checkpoint.history?.[L]) { %><div class="mt-5 border-t border-stone-200 dark:border-stone-700 pt-4"><h3 class="section-title"><i data-lucide="landmark" class="text-emerald-600"></i><%= tr("History of this place","इस स्थान का इतिहास") %></h3><p class="body-copy whitespace-pre-line"><%= checkpoint.history[L] %></p></div><% } %>
+    <% if(checkpoint.story?.[L]) { %><div class="mt-5 rounded-2xl bg-emerald-50 dark:bg-emerald-950/25 border border-emerald-100 dark:border-emerald-900 p-4"><h3 class="font-bold text-lg flex items-center gap-2"><i data-lucide="book-heart" class="text-emerald-700"></i><%= checkpoint.storyTitle?.[L] || tr("Important story","महत्वपूर्ण कहानी") %></h3><p class="body-copy mt-2"><%= checkpoint.story[L] %></p></div><% } %>
+    <% if(checkpoint.visitorTips?.[L]) { %><div class="mt-5 rounded-2xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-4"><h3 class="font-bold text-sm flex items-center gap-2"><i data-lucide="shield-check" class="text-amber-700"></i><%= tr("Visitor guidance & safety","पर्यटक निर्देश एवं सुरक्षा") %></h3><p class="body-copy mt-2"><%= checkpoint.visitorTips[L] %></p></div><% } %>
+  </section>
+
+  <section class="content-card mt-4">
+    <div class="flex items-center justify-between gap-3 mb-4"><div><h2 class="section-title mb-1"><i data-lucide="images" class="text-emerald-600"></i><%= tr("Photo gallery","फोटो गैलरी") %></h2><p class="body-copy"><%= tr("Photos associated with this location","इस स्थान से जुड़ी तस्वीरें") %></p></div><span class="rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 px-3 py-1 text-xs font-bold"><%= gallery.length %> <%= tr("photos","तस्वीरें") %></span></div>
+    <% if(gallery.length) { %><p class="body-copy mb-3"><%= tr("Official district photographs are identified where available; all other images are illustrative references, not confirmed photographs of this exact site. Confirm reuse rights before public launch.","केवल संदर्भ तस्वीरें: ये फोटो इस स्थान पर ली गई प्रमाणित तस्वीरें नहीं हैं। हर फोटो के नीचे श्रेय और मूल लाइसेंस पेज दिया गया है।") %></p><div class="grid grid-cols-2 md:grid-cols-3 gap-3"><% gallery.forEach(g => { %><div class="gallery-item"><button class="gallery-tile" data-image="<%= g.image %>" data-caption="<%= g.caption?.[L] || '' %>" data-credit="<%= [g.credit,g.license].filter(Boolean).join(" · ") %>" data-source-url="<%= g.sourceUrl || '' %>"><img src="<%= g.image %>" alt="<%= g.alt?.[L] || g.caption?.[L] || name %>" loading="lazy"><span><%= g.caption?.[L] || name %></span></button><p class="photo-credit"><%= tr("Photo credit:","फोटो श्रेय:") %> <%= g.credit || "Source" %> · <%= g.license || "Licence details" %> <% if(g.sourceUrl){ %><a href="<%= g.sourceUrl %>" target="_blank" rel="noopener noreferrer"><%= tr("Source","स्रोत") %></a><% } %></p></div><% }) %></div><% } else { %><div class="rounded-2xl border border-dashed border-stone-300 dark:border-stone-700 p-8 text-center"><i data-lucide="image-plus" class="mx-auto text-stone-400 w-8 h-8 mb-2"></i><p class="font-bold text-sm"><%= tr("No photos have been added for this location yet.","इस स्थान के लिए अभी तस्वीरें नहीं जोड़ी गई हैं।") %></p><p class="body-copy mt-1"><%= tr("The administrator can add photos and assign them to this location from Admin → Gallery.","व्यवस्थापक Admin → Gallery से तस्वीरें जोड़कर इस स्थान से जोड़ सकते हैं।") %></p></div><% } %>
+  </section>
+
+  <section class="content-card mt-4">
+    <h2 class="section-title"><i data-lucide="train-front" class="text-emerald-600"></i><%= tr("How to reach this location","इस स्थान तक कैसे पहुँचें") %></h2>
+    <div class="rail-info-grid">
+      <div><span class="rail-label"><%= tr("Nearest listed railway station","निकटतम सूचीबद्ध रेलवे स्टेशन") %></span><strong><%= stationName %> (<%= checkpoint.railway?.stationCode || "SJPR" %>)</strong></div>
+      <div><span class="rail-label"><%= measuredDistance ? tr("Verified road distance to this location","इस स्थान तक सत्यापित सड़क दूरी") : tr("Village-level straight-line reference","गाँव-स्तरीय सीधी दूरी का संदर्भ") %></span><strong><%= measuredDistance ? `~${measuredDistance} km` : villageReferenceDistance ? `~${villageReferenceDistance} km*` : tr("Not measured","माप उपलब्ध नहीं") %></strong></div>
+    </div>
+    <% if(checkpoint.railway?.note?.[L]) { %><p class="body-copy mt-3"><%= checkpoint.railway.note[L] %></p><% } %>
+    <div class="flex flex-wrap gap-3 mt-4"><button type="button" class="tp-access-button" data-current-directions data-destination="<%= destination %>"><i data-lucide="map-pin"></i><%= tr("Directions from my current location","मेरी वर्तमान लोकेशन से रास्ता") %></button><a href="<%= stationRoute %>" target="_blank" rel="noopener noreferrer" class="tp-access-button secondary"><i data-lucide="train-front"></i><%= tr("Directions from railway station","रेलवे स्टेशन से रास्ता") %></a></div>
+  </section>
+  <% if(checkpoint.sources?.length) { %><section class="content-card mt-4"><h2 class="section-title"><i data-lucide="book-marked" class="text-emerald-600"></i><%= tr("Sources & references","स्रोत एवं संदर्भ") %></h2><ul class="tp-source-list"><% checkpoint.sources.forEach(source=>{ %><li><a href="<%= source.url %>" target="_blank" rel="noopener noreferrer"><%= source.title %></a></li><% }) %></ul></section><% } %>
+  <% if(checkpoint.mapEmbedUrl) { %><section class="content-card mt-4"><h2 class="section-title"><i data-lucide="map" class="text-emerald-600"></i><%= tr("Location map","स्थान का नक्शा") %></h2><div class="map-frame"><iframe title="<%= name %> map" src="<%= checkpoint.mapEmbedUrl %>" loading="lazy" allowfullscreen></iframe></div></section><% } %>
+  <footer class="tp-footer"><span>© <%= new Date().getFullYear() %> Surajpur Virasat</span><span><%= tr("Respect heritage and nature. Leave no litter.","विरासत और प्रकृति का सम्मान करें। कचरा न फैलाएँ।") %></span></footer>
+</main>
+
+<div id="sosModal" class="modal-backdrop hidden"><div class="modal-card max-w-md"><button class="modal-close" data-close="sosModal" aria-label="Close">×</button><div class="text-center"><div class="inline-flex p-3 bg-rose-100 text-rose-700 rounded-xl"><i data-lucide="phone-call"></i></div><h2 class="font-bold text-lg mt-2"><%= tr("Wildlife Emergency & Forest Guard SOS","वन्यजीव आपातकालीन एवं वनकर्मी SOS") %></h2><p class="body-copy"><%= tr("For emergencies, contact the relevant authorities. Non-emergency contact details are marked until officially verified.","आपात स्थिति में संबंधित अधिकारियों से संपर्क करें। गैर-आपातकालीन नंबरों की आधिकारिक पुष्टि लंबित है।") %></p></div><div class="space-y-2 mt-4"><% contacts.forEach(c=>{ %><a href="tel:<%= c.phone.replace(/[^+\d]/g,'') %>" class="contact-row"><span><strong><%= c.label?.[L] %></strong><small><%= c.verified ? tr("Verified general emergency contact","सत्यापित सामान्य आपातकालीन नंबर") : tr("Verify before relying on this number","इस नंबर की पुष्टि करें") %></small></span><b><%= c.phone %></b></a><% }) %></div></div></div>
+<div id="lightbox" class="modal-backdrop hidden"><div class="lightbox-card"><button class="modal-close" data-close="lightbox" aria-label="Close">×</button><img id="lightboxImage" src="" alt=""><p id="lightboxCaption"></p><p id="lightboxCredit" class="lightbox-credit"></p></div></div>
+<div id="toast" class="toast" role="status" aria-live="polite"></div>
+<script>window.TP_CONFIG=<%- JSON.stringify({lang:L,speechText:narration,homeUrl:publicBaseUrl,checkpoint:{slug:checkpoint.slug,name},destination}).replace(/</g,"\\u003c") %>;</script>

@@ -1,0 +1,9 @@
+<%- include("partials/nav") %>
+<main class="admin-shell">
+  <div class="flex items-center justify-between gap-3 flex-wrap mb-6"><div><p class="admin-kicker">CONTENT MANAGEMENT</p><h1 class="admin-title">Dashboard</h1><p class="text-sm text-stone-500">Manage the information displayed on the tourist website.</p></div><a href="/" target="_blank" class="admin-btn">View tourist website ↗</a></div>
+  <div class="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
+    <% Object.entries(counts).forEach(([key,value])=>{ %><a href="/admin/<%= key %>" class="admin-stat"><span><%= key.charAt(0).toUpperCase()+key.slice(1) %></span><strong><%= value %></strong><small>Manage content →</small></a><% }) %>
+  </div>
+  <section class="admin-panel mt-6"><h2 class="font-bold text-lg mb-2">Sanctuary profile</h2><p class="text-sm text-stone-500 mb-4">Update name, description, map and key visitor information.</p><a class="admin-btn" href="/admin/sanctuary">Edit sanctuary information</a><p class="text-xs text-amber-700 mt-4">Content verification status: <%= sanctuary?.factsVerified ? "Marked verified" : "Not yet verified — review facts with the Forest Department before public launch." %></p></section>
+  <section class="admin-panel mt-6"><h2 class="font-bold mb-2">First-time setup</h2><p class="text-sm text-stone-500">If this is a new database, run <code>npm run seed</code> to insert the starter sanctuary content, species, gallery, QR checkpoints and admin account.</p></section>
+</main>

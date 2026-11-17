@@ -1,0 +1,15 @@
+const router = require("express").Router();
+const wrapAsync = require("../middleware/async");
+const { requireAdmin } = require("../middleware/auth");
+const admin = require("../controllers/adminController");
+router.use(requireAdmin);
+router.get("/", wrapAsync(admin.dashboard));
+router.get("/sanctuary", wrapAsync(admin.sanctuaryForm));
+router.put("/sanctuary", wrapAsync(admin.updateSanctuary));
+router.get("/:type", wrapAsync(admin.content));
+router.get("/:type/new", admin.newForm);
+router.get("/:type/:id/edit", wrapAsync(admin.editForm));
+router.post("/:type", wrapAsync(admin.save));
+router.put("/:type/:id", wrapAsync(admin.save));
+router.delete("/:type/:id", wrapAsync(admin.remove));
+module.exports = router;

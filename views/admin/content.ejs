@@ -1,0 +1,14 @@
+<%- include("partials/nav") %>
+<main class="admin-shell">
+  <div class="flex items-center justify-between flex-wrap gap-3 mb-5"><div><p class="admin-kicker">CONTENT LIBRARY</p><h1 class="admin-title">Manage <%= type %></h1><% if(type==="checkpoints"){ %><p class="text-xs text-stone-500 mt-1">Keep these records to preserve printed QR links. Uncheck Active to hide a place from Explore.</p><% } %></div><a class="admin-btn" href="/admin/<%= type %>/new">+ Add new</a></div>
+  <div class="admin-panel overflow-x-auto"><table class="admin-table"><thead><tr><th>Item</th><th>Details</th><th>Status</th><th>Actions</th></tr></thead><tbody>
+  <% items.forEach(item=>{ const name=item.name?.en || item.label?.en || item.caption?.en || item.slug || item.phone || "Gallery image"; %>
+    <tr><td><strong><%= name %></strong><% if(item.scientificName){ %><small><%= item.scientificName %></small><% } %><% if(type==="gallery"){ %><small>Location: <%= item.checkpointSlug || "main" %></small><% } %></td>
+    <td><%= item.description?.en || item.phone || item.image || "" %></td>
+    <td><span class="status-pill <%= item.active===false?'off':'' %>"><%= item.active===false?'Inactive':'Active' %></span>
+      <% if(item.contentVerified===false || item.photoVerified===false || item.verified===false){ %><small class="block text-amber-700">Needs verification</small><% } %>
+    </td><td><div class="flex flex-wrap gap-2"><a class="admin-link" href="/admin/<%= type %>/<%= item._id %>/edit">Edit</a><% if(type!=="checkpoints"){ %><form action="/admin/<%= type %>/<%= item._id %>?_method=DELETE" method="POST" onsubmit="return confirm('Delete this item?')"><button class="admin-link danger">Delete</button></form><% } else { %><a class="admin-link" href="/qr/<%= item.slug %>.png?dpi=1600&size=50">PNG · 1600 DPI</a><a class="admin-link" href="/qr/<%= item.slug %>.svg">SVG</a><% } %></div></td></tr>
+  <% }) %>
+  <% if(!items.length){ %><tr><td colspan="4" class="text-center text-stone-500 py-8">No content found. Add your first item.</td></tr><% } %>
+  </tbody></table></div>
+</main>
