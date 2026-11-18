@@ -1,7 +1,9 @@
 <!DOCTYPE html>
 <html lang="<%= typeof lang !== 'undefined' ? lang : 'en' %>" class="scroll-smooth">
 <head>
-  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="color-scheme" content="light dark">
+  <script>document.documentElement.classList.add("js-enabled");</script>
   <meta name="theme-color" content="#052e16"><link rel="icon" type="image/svg+xml" href="/favicon.svg">
   <title><%= title || "Surajpur Virasat – Heritage & Nature Explorer" %></title>
   <script src="https://cdn.tailwindcss.com"></script>
@@ -13,9 +15,38 @@
   <link rel="stylesheet" href="/css/style.css">
 </head>
 <body class="bg-stone-50 text-stone-800 dark:bg-stone-950 dark:text-stone-100 min-h-screen transition-colors duration-300 font-sans selection:bg-jungle-600 selection:text-white">
+  <div id="siteLoader" class="site-loader" role="status" aria-live="polite" aria-label="Loading Surajpur Virasat">
+    <div class="site-loader__content">
+      <img src="/images/surajpur-virasat-symbol.svg" width="64" height="64" alt="" class="site-loader__logo">
+      <div class="site-loader__spinner" aria-hidden="true"></div>
+      <strong>Surajpur Virasat</strong>
+      <span><%= typeof lang !== 'undefined' && lang === 'hi' ? 'विरासत और प्रकृति की खोज…' : 'Discovering heritage & nature…' %></span>
+      <div class="site-loader__track" aria-hidden="true"><i></i></div>
+    </div>
+  </div>
   <%- include("../partials/flash") %>
   <%- body %>
   <script src="/js/app.js"></script>
   <script>if(window.lucide)lucide.createIcons();</script>
+  <script>
+    (() => {
+      const loader = document.getElementById("siteLoader");
+      if (!loader) return;
+      const startedAt = performance.now();
+      let finished = false;
+      const finish = () => {
+        if (finished) return;
+        finished = true;
+        const wait = Math.max(0, 520 - (performance.now() - startedAt));
+        window.setTimeout(() => {
+          loader.classList.add("is-hidden");
+          window.setTimeout(() => loader.remove(), 520);
+        }, wait);
+      };
+      window.addEventListener("load", finish, { once: true });
+      window.setTimeout(finish, 2200);
+      window.addEventListener("pageshow", (event) => { if (event.persisted) finish(); });
+    })();
+  </script>
 </body>
 </html>

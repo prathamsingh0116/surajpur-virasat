@@ -58,7 +58,7 @@
     });
     if (shouldScroll) {
       const main = $(".ref-panel:not(.hidden)");
-      main?.scrollIntoView({ behavior: "smooth", block: "start" });
+      main?.scrollIntoView({ behavior: window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches ? "auto" : "smooth", block: "start" });
     }
     window.lucide?.createIcons();
   }
@@ -205,17 +205,29 @@
   });
   window.addEventListener("pagehide", () => { if (speechSupported) speechSynthesis.cancel(); });
 
-  // Modals: pitch, emergency contacts, QR and image lightbox.
-  function openModal(id) { $(`#${id}`)?.classList.remove("hidden"); }
-  function closeModal(id) { $(`#${id}`)?.classList.add("hidden"); }
+  // Modals: keep background scrolling locked while a dialog is open (mobile Safari safe).
+  function syncModalScrollLock() {
+    const hasOpenModal = $$(".ref-modal").some((modal) => !modal.classList.contains("hidden"));
+    document.body.classList.toggle("sv-modal-open", hasOpenModal);
+  }
+  function openModal(id) {
+    const modal = $(`#${id}`);
+    if (!modal) return;
+    modal.classList.remove("hidden");
+    syncModalScrollLock();
+  }
+  function closeModal(id) {
+    $(`#${id}`)?.classList.add("hidden");
+    syncModalScrollLock();
+  }
   $("#pitchOpen")?.addEventListener("click", () => openModal("pitchModal"));
   $("#sosOpen")?.addEventListener("click", () => openModal("sosModal"));
   $$('[data-close]').forEach((button) => button.addEventListener("click", () => closeModal(button.dataset.close)));
   $$(".ref-modal").forEach((modal) => modal.addEventListener("click", (event) => {
-    if (event.target === modal) modal.classList.add("hidden");
+    if (event.target === modal) closeModal(modal.id);
   }));
   document.addEventListener("keydown", (event) => {
-    if (event.key === "Escape") $$(".ref-modal").forEach((modal) => modal.classList.add("hidden"));
+    if (event.key === "Escape") $$(".ref-modal").forEach((modal) => closeModal(modal.id));
   });
 
   // QR modal: on-screen QR preview plus server-generated print-quality SVG / 1600-DPI PNG links.
@@ -305,6 +317,26 @@
       if (error?.name !== "AbortError") toast(isHindi ? "शेयर नहीं हो पाया।" : "Could not share this page.");
     }
   });
+
+  // Subtle reveal-on-scroll: progressive enhancement with a no-animation fallback.
+  const reduceMotion = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
+  if (!reduceMotion && "IntersectionObserver" in window) {
+    const revealItems = $$(".ref-panel > article, .ref-panel > .grid > article, .ref-gallery-item, .ref-route-button");
+    if (revealItems.length) {
+      document.documentElement.classList.add("sv-motion-ready");
+      const revealObserver = new IntersectionObserver((entries, observer) => {
+        entries.forEach((entry) => {
+          if (!entry.isIntersecting) return;
+          entry.target.classList.add("is-visible");
+          observer.unobserve(entry.target);
+        });
+      }, { root: null, rootMargin: "0px 0px -8% 0px", threshold: 0.08 });
+      revealItems.forEach((item) => {
+        item.classList.add("sv-reveal");
+        revealObserver.observe(item);
+      });
+    }
+  }
 
   window.lucide?.createIcons();
 })();

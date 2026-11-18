@@ -42,8 +42,8 @@ const metrics = onHome ? [
 ];
 %>
 
-<header class="fixed top-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
-  <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+<header id="siteHeader" class="sv-header fixed top-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
+  <div class="sv-header-inner max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
     <a href="/" class="flex items-center gap-2 min-w-0" aria-label="Surajpur Virasat home">
       <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-800 to-emerald-500 flex items-center justify-center text-white shadow-md shrink-0"><img src="/images/surajpur-virasat-symbol.svg" alt="" class="w-8 h-8 rounded-lg"></span>
       <span class="leading-tight min-w-0"><strong class="font-extrabold text-sm sm:text-base tracking-tight block text-stone-900 dark:text-white">Surajpur<span class="text-emerald-700 dark:text-emerald-400"> Virasat</span></strong><small class="text-[8px] sm:text-[9px] uppercase font-bold tracking-[.16em] text-stone-500 dark:text-stone-400">Heritage · Nature · Stories</small></span>
@@ -59,10 +59,10 @@ const metrics = onHome ? [
 </header>
 
 <!-- Reference-style quick location strip. Visitors can move between all QR destinations without scanning again. -->
-<div class="mt-14 sm:mt-16 bg-emerald-950 text-emerald-100 border-b border-emerald-900 text-xs px-3 sm:px-4 sticky top-14 sm:top-16 z-30">
-  <div class="max-w-5xl mx-auto min-h-12 py-2 flex flex-wrap items-center justify-between gap-2">
+<div id="exploreStrip" class="sv-explore-strip mt-14 sm:mt-16 bg-emerald-950 text-emerald-100 border-b border-emerald-900 text-xs px-3 sm:px-4 sticky top-14 sm:top-16 z-30">
+  <div class="sv-explore-inner max-w-5xl mx-auto min-h-12 py-2 flex flex-wrap items-center justify-between gap-2">
     <div class="flex items-center gap-2 shrink-0"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-[11px] sm:text-xs font-bold text-emerald-200"><%= tr("Explore locations", "स्थान चुनें") %></span></div>
-    <div class="flex items-center gap-1.5 flex-wrap">
+    <div class="sv-quick-links flex items-center gap-1.5 flex-wrap">
       <% quickCheckpoints.forEach(q => { %>
         <a href="/location/<%= q.slug %>?lang=<%= L %>" class="px-2.5 py-1 rounded-full bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-700 text-[10px] sm:text-[11px] font-semibold transition-colors"><%= q.name?.[L] || q.slug %></a>
       <% }) %>
@@ -75,26 +75,26 @@ const metrics = onHome ? [
   </div>
 </div>
 
-<main class="max-w-5xl mx-auto pb-24 md:pb-10">
+<main class="sv-main max-w-5xl mx-auto pb-24 md:pb-10">
   <% if (cp && cp.active === false) { %><div class="mx-3 sm:mx-6 mt-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm"><strong><%= tr("Notice:", "सूचना:") %></strong> <%= tr("This place is no longer listed in Explore, but this QR page remains available.", "यह स्थान अब Explore सूची में नहीं है, लेकिन इसका QR पृष्ठ उपलब्ध रहेगा।") %></div><% } %>
 
   <!-- HERO: keep exactly four main visitor actions -->
-  <section class="relative w-full min-h-[470px] sm:h-[560px] flex items-end overflow-hidden bg-emerald-950">
-    <img id="heroImage" src="<%= heroImage %>" alt="<%= currentName %>" class="absolute inset-0 w-full h-full object-cover" fetchpriority="high">
+  <section class="sv-hero relative w-full min-h-[470px] sm:h-[560px] flex items-end overflow-hidden bg-emerald-950">
+    <img id="heroImage" src="<%= heroImage %>" alt="<%= currentName %>" class="absolute inset-0 w-full h-full object-cover" fetchpriority="high" decoding="async">
     <div class="absolute inset-0 bg-gradient-to-t from-black via-emerald-950/80 to-black/10"></div>
     <div class="absolute top-4 left-3 right-3 sm:left-5 sm:right-5 z-10 flex flex-wrap items-center justify-between gap-2 text-white">
       <span class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-[10px] sm:text-xs font-semibold"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-300"></i><%= onHome ? tr("Heritage & Wildlife Explorer", "विरासत एवं वन्यजीव अन्वेषक") : tr("Surajpur Heritage Destination", "सूरजपुर विरासत स्थल") %></span>
       <span class="flex items-center gap-1.5 bg-emerald-600/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span><%= tr("Bilingual QR Guide", "द्विभाषी QR गाइड") %></span>
     </div>
-    <div class="relative z-10 w-full max-w-3xl px-4 sm:px-8 pb-7 sm:pb-9 pt-24 text-white">
+    <div class="sv-hero-content relative z-10 w-full max-w-3xl px-4 sm:px-8 pb-7 sm:pb-9 pt-24 text-white">
       <p class="flex items-center gap-2 text-[11px] sm:text-sm font-bold tracking-wider uppercase text-emerald-200 mb-2"><i data-lucide="map-pin" class="w-4 h-4 text-amber-300"></i><%= onHome ? (s.district?.[L] || tr("Surajpur District, Chhattisgarh", "सूरजपुर जिला, छत्तीसगढ़")) : tr("You are exploring", "आप इस स्थान की जानकारी देख रहे हैं") %></p>
-      <h1 id="heroTitle" class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-3 drop-shadow-md"><%= onHome ? tr("Discover Surajpur’s Heritage & Nature", "सूरजपुर की विरासत और प्रकृति को जानें") : currentName %></h1>
+      <h1 id="heroTitle" class="sv-hero-title text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-3 drop-shadow-md"><%= onHome ? tr("Discover Surajpur’s Heritage & Nature", "सूरजपुर की विरासत और प्रकृति को जानें") : currentName %></h1>
       <p id="heroSubTitle" class="text-stone-100 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mb-5"><%= currentDescription %></p>
-      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3" aria-label="Main visitor actions">
-        <button type="button" id="audioButton" class="flex min-h-12 items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-800 hover:from-emerald-500 hover:to-green-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl shadow-lg border border-emerald-300/30 active:scale-[.98] transition"><i id="audioIcon" data-lucide="volume-2" class="w-4 h-4"></i><span id="audioLabel"><%= tr("Listen Audio Tour", "ऑडियो गाइड सुनें") %></span></button>
-        <button type="button" class="flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30" data-current-directions data-destination="<%= destination %>"><i data-lucide="navigation" class="w-4 h-4 text-emerald-200"></i><span><%= tr("Directions", "रास्ता देखें") %></span></button>
-        <button type="button" id="sosOpen" class="flex min-h-12 items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-rose-300/50 shadow-md"><i data-lucide="phone-call" class="w-4 h-4"></i><span>SOS</span></button>
-        <button type="button" id="shareButton" class="flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30"><i data-lucide="share-2" class="w-4 h-4"></i><span><%= tr("Share", "शेयर करें") %></span></button>
+      <div class="sv-actions grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3" aria-label="Main visitor actions">
+        <button type="button" id="audioButton" class="sv-action flex min-h-12 items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-800 hover:from-emerald-500 hover:to-green-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl shadow-lg border border-emerald-300/30 active:scale-[.98] transition"><i id="audioIcon" data-lucide="volume-2" class="w-4 h-4"></i><span id="audioLabel"><%= tr("Listen Audio Tour", "ऑडियो गाइड सुनें") %></span></button>
+        <button type="button" class="sv-action flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30" data-current-directions data-destination="<%= destination %>"><i data-lucide="navigation" class="w-4 h-4 text-emerald-200"></i><span><%= tr("Directions", "रास्ता देखें") %></span></button>
+        <button type="button" id="sosOpen" class="sv-action flex min-h-12 items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-rose-300/50 shadow-md"><i data-lucide="phone-call" class="w-4 h-4"></i><span>SOS</span></button>
+        <button type="button" id="shareButton" class="sv-action flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30"><i data-lucide="share-2" class="w-4 h-4"></i><span><%= tr("Share", "शेयर करें") %></span></button>
       </div>
       <div id="speechBanner" class="hidden mt-3 inline-flex items-center gap-2 bg-black/65 backdrop-blur-md border border-emerald-400/40 px-3 py-2 rounded-lg text-xs text-emerald-200" aria-live="polite"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="speechStatus"><%= tr("Audio guide is playing…", "ऑडियो गाइड चल रहा है…") %></span></div>
     </div>
@@ -111,7 +111,7 @@ const metrics = onHome ? [
   </section>
 
   <!-- Desktop segmented tab bar -->
-  <nav class="hidden md:block sticky top-28 z-30 bg-stone-100/95 dark:bg-stone-950/95 backdrop-blur-md px-6 pt-5 pb-2 border-b border-stone-200 dark:border-stone-800">
+  <nav class="sv-tabs hidden md:block sticky top-28 z-30 bg-stone-100/95 dark:bg-stone-950/95 backdrop-blur-md px-6 pt-5 pb-2 border-b border-stone-200 dark:border-stone-800">
     <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
       <button type="button" class="ref-tab selected" data-tab="about"><i data-lucide="book-open"></i><span><%= tr("About & History", "परिचय एवं इतिहास") %></span></button>
       <button type="button" class="ref-tab" data-tab="wildlife"><i data-lucide="paw-print"></i><span><%= tr("Flora & Fauna", "वन्यजीव एवं वनस्पति") %></span></button>
@@ -121,7 +121,7 @@ const metrics = onHome ? [
     </div>
   </nav>
 
-  <div class="px-3.5 sm:px-6 py-5 sm:py-6 space-y-5">
+  <div class="sv-content px-3.5 sm:px-6 py-5 sm:py-6 space-y-5">
     <!-- About / History panel -->
     <section id="panel-about" class="ref-panel space-y-4 sm:space-y-6">
       <% if (onHome) { %>
@@ -152,7 +152,7 @@ const metrics = onHome ? [
         <h2 class="text-lg sm:text-2xl font-extrabold mb-2 flex items-center gap-2"><i data-lucide="paw-print" class="text-emerald-600"></i><%= tr("Prominent Wildlife Species", "प्रमुख वन्यजीव प्रजातियाँ") %></h2>
         <p class="ref-copy mb-4"><%= tr("Wildlife records stored for the sanctuary. Species presence and sightings should be confirmed with the Forest Department.", "अभयारण्य के लिए उपलब्ध वन्यजीव रिकॉर्ड। प्रजातियों और दर्शन की पुष्टि वन विभाग से करें।") %></p>
         <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
-          <% (wildlife || []).forEach(w => { %><article class="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/70"><% if (w.image) { %><img src="<%= w.image %>" alt="<%= w.name?.[L] %>" class="w-full h-36 object-cover" loading="lazy"><% } %><div class="p-3"><div class="flex flex-wrap items-start justify-between gap-2"><h3 class="font-extrabold"><%= w.name?.[L] %></h3><span class="text-xs italic text-emerald-700 dark:text-emerald-300"><%= w.scientificName %></span></div><p class="ref-copy"><%= w.description?.[L] %></p><% if (!w.contentVerified) { %><span class="inline-block mt-2 text-[11px] text-amber-700 dark:text-amber-300">● <%= tr("Verification pending", "पुष्टि लंबित") %></span><% } %></div></article><% }) %>
+          <% (wildlife || []).forEach(w => { %><article class="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/70"><% if (w.image) { %><img src="<%= w.image %>" alt="<%= w.name?.[L] %>" class="w-full h-36 object-cover" loading="lazy" decoding="async"><% } %><div class="p-3"><div class="flex flex-wrap items-start justify-between gap-2"><h3 class="font-extrabold"><%= w.name?.[L] %></h3><span class="text-xs italic text-emerald-700 dark:text-emerald-300"><%= w.scientificName %></span></div><p class="ref-copy"><%= w.description?.[L] %></p><% if (!w.contentVerified) { %><span class="inline-block mt-2 text-[11px] text-amber-700 dark:text-amber-300">● <%= tr("Verification pending", "पुष्टि लंबित") %></span><% } %></div></article><% }) %>
         </div>
       </article>
       <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200 dark:border-stone-800">
@@ -179,7 +179,7 @@ const metrics = onHome ? [
         <% if (galleryRows.length) { %>
           <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4"><%= tr("Images are shown with their source and photo-credit details. Illustrative images are not claimed to be photographs of this exact location.", "तस्वीरों के साथ स्रोत और श्रेय दिया गया है। संदर्भ चित्रों को इस सटीक स्थान पर लिया गया फोटो नहीं बताया गया है।") %></p>
           <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
-            <% galleryRows.forEach(item => { %><div class="ref-gallery-item"><button type="button" class="ref-gallery-tile" data-image="<%= item.image %>" data-caption="<%= item.caption?.[L] || currentName %>" data-credit="<%= [item.credit, item.license].filter(Boolean).join(' · ') %>" data-source-url="<%= item.sourceUrl || '' %>"><img src="<%= item.image %>" alt="<%= item.alt?.[L] || item.caption?.[L] || currentName %>" loading="lazy"><span><%= item.caption?.[L] || currentName %></span></button><p class="text-xs text-stone-500 dark:text-stone-400 mt-2 leading-relaxed"><%= item.credit || tr("Photo source", "फोटो स्रोत") %> · <%= item.license || "" %> <% if (item.sourceUrl) { %><a class="text-emerald-700 dark:text-emerald-300 underline" href="<%= item.sourceUrl %>" target="_blank" rel="noopener noreferrer"><%= tr("Source", "स्रोत") %></a><% } %></p></div><% }) %>
+            <% galleryRows.forEach(item => { %><div class="ref-gallery-item"><button type="button" class="ref-gallery-tile" data-image="<%= item.image %>" data-caption="<%= item.caption?.[L] || currentName %>" data-credit="<%= [item.credit, item.license].filter(Boolean).join(' · ') %>" data-source-url="<%= item.sourceUrl || '' %>"><img src="<%= item.image %>" alt="<%= item.alt?.[L] || item.caption?.[L] || currentName %>" loading="lazy" decoding="async"><span><%= item.caption?.[L] || currentName %></span></button><p class="text-xs text-stone-500 dark:text-stone-400 mt-2 leading-relaxed"><%= item.credit || tr("Photo source", "फोटो स्रोत") %> · <%= item.license || "" %> <% if (item.sourceUrl) { %><a class="text-emerald-700 dark:text-emerald-300 underline" href="<%= item.sourceUrl %>" target="_blank" rel="noopener noreferrer"><%= tr("Source", "स्रोत") %></a><% } %></p></div><% }) %>
           </div>
         <% } else { %><div class="rounded-xl border border-dashed border-stone-300 dark:border-stone-700 p-9 text-center"><i data-lucide="image-plus" class="w-9 h-9 mx-auto text-stone-400 mb-2"></i><p class="font-bold"><%= tr("No photos have been added yet.", "अभी कोई फोटो नहीं जोड़ा गया है।") %></p><p class="ref-copy"><%= tr("The administrator can assign photos to this location from Admin → Gallery.", "व्यवस्थापक Admin → Gallery से तस्वीरें इस स्थान से जोड़ सकता है।") %></p></div><% } %>
       </article>
@@ -198,7 +198,7 @@ const metrics = onHome ? [
           <button type="button" class="ref-route-button" data-current-directions data-destination="<%= destination %>"><i data-lucide="locate-fixed" class="w-5 h-5"></i><span><strong><%= tr("Directions from my current location", "मेरी वर्तमान लोकेशन से रास्ता") %></strong><small><%= tr("Uses your phone location only after permission", "अनुमति मिलने पर ही फोन की लोकेशन उपयोग होगी") %></small></span></button>
           <a href="<%= stationRoute %>" target="_blank" rel="noopener noreferrer" class="ref-route-button secondary"><i data-lucide="train-front" class="w-5 h-5"></i><span><strong><%= tr("Route from railway station", "रेलवे स्टेशन से रास्ता") %></strong><small><%= stationName %></small></span></a>
         </div>
-        <div class="w-full h-64 sm:h-80 rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 shadow-inner"><iframe title="Map for <%= currentName %>" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<%= mapEmbedUrl %>" allowfullscreen></iframe></div>
+        <div class="sv-map-frame w-full h-64 sm:h-80 rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 shadow-inner"><iframe title="Map for <%= currentName %>" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<%= mapEmbedUrl %>" allowfullscreen></iframe></div>
       </article>
     </section>
   </div>
@@ -207,7 +207,7 @@ const metrics = onHome ? [
 </main>
 
 <!-- Mobile bottom navigation matching the reference layout -->
-<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 px-1.5 py-1.5 grid grid-cols-5 shadow-lg">
+<nav class="sv-bottom-nav md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 px-1.5 py-1.5 grid grid-cols-5 shadow-lg">
   <button type="button" class="ref-bottom-tab selected" data-tab="about"><i data-lucide="book-open"></i><span><%= tr("About", "परिचय") %></span></button>
   <button type="button" class="ref-bottom-tab" data-tab="wildlife"><i data-lucide="paw-print"></i><span><%= tr("Wildlife", "वन्यजीव") %></span></button>
   <button type="button" class="ref-bottom-tab" data-tab="rescue"><i data-lucide="heart-handshake"></i><span><%= tr("Rescue", "रेस्क्यू") %></span></button>

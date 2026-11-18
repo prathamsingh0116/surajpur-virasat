@@ -231,3 +231,18 @@ try {
 The script creates only the first admin if no admin exists. It hashes the password with bcrypt and never prints it. It does not update or delete any location, gallery, wildlife, flora or other content documents. After creation, use `/admin/login`.
 
 On Windows, the app uses Google DNS by default because this development network refused Node.js SRV queries. Set `USE_PUBLIC_DNS=false` in `.env` to use the Windows system resolver instead. Render runs on Linux and uses its default DNS resolver.
+
+## Cross-device visitor experience (v1.1)
+
+The visitor interface includes responsive refinements for compact Android phones, iPhones with safe-area insets, tablets/iPad, and landscape phones:
+
+- `viewport-fit=cover` with iOS safe-area support for the header, modal dialogs, and bottom navigation.
+- Compact-screen header and location selector layout; the location shortcuts can scroll horizontally without widening the page.
+- Two-column action controls on phones with minimum touch targets and wrapping labels.
+- Responsive image gallery, map frame, modal sizing, and admin tables/forms.
+- A branded loading overlay with a 2.2-second fallback timeout.
+- Smooth native scrolling and subtle IntersectionObserver reveals when motion is allowed.
+- `prefers-reduced-motion` support to disable smooth scrolling and nonessential animation.
+- Background scroll lock while dialogs are open, including mobile Safari.
+
+The layout is designed for 320px-and-wider phone viewports and common tablet widths. Physical-device testing is still recommended before a public launch, particularly on iOS Safari, low-memory Android devices, and tablets in split-screen mode.
