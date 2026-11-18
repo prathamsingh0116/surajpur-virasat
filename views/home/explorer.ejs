@@ -1,0 +1,240 @@
+<%
+const L = lang === "hi" ? "hi" : "en";
+const tr = (en, hi) => L === "hi" ? (hi || en) : en;
+const s = sanctuary || {};
+const cp = checkpoint || null;
+const onHome = Boolean(isHome);
+const currentName = onHome ? (s.name?.[L] || tr("Surajpur Heritage & Nature Explorer", "सूरजपुर विरासत एवं प्रकृति अन्वेषक")) : (cp.name?.[L] || cp.slug);
+const currentDescription = onHome
+  ? (s.tagline?.[L] || tr("Discover the temples, sacred places, hills, waterfalls, forests and wildlife of Surajpur district.", "सूरजपुर जिले के मंदिरों, पवित्र स्थलों, पहाड़ियों, जलप्रपातों, वनों और वन्यजीवों को जानें।"))
+  : (cp.overview?.[L] || cp.description?.[L] || "");
+const destination = onHome ? "Surajpur District, Chhattisgarh, India" : (cp.destination || `${currentName}, Surajpur, Chhattisgarh, India`);
+const heroImage = (onHome ? s.heroImage : cp.heroImage) || "https://images.unsplash.com/photo-1470240731273-7821a6eeb6bd?auto=format&fit=crop&w=1800&q=85";
+const stationName = cp?.railway?.stationName || "Surajpur Road Railway Station";
+const stationCode = cp?.railway?.stationCode || "SJPR";
+const railwayKm = cp?.railway?.distanceKm;
+const villageKm = cp?.railway?.villageReferenceKm;
+const stationRoute = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(`${stationName}, Chhattisgarh, India`)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
+const mapUrl = (onHome ? s.mapUrl : cp.mapUrl) || `https://www.google.com/maps/search/?api=1&query=${encodeURIComponent(destination)}`;
+const mapEmbedUrl = (onHome ? s.mapEmbedUrl : cp.mapEmbedUrl) || `https://maps.google.com/maps?q=${encodeURIComponent(destination)}&z=12&output=embed`;
+const currentUrlPath = onHome ? "/" : `/location/${cp.slug}`;
+const publicOrigin = String(publicBaseUrl || "").replace(/\/+$/, "");
+const languageUrl = `${currentUrlPath}?lang=${L === "en" ? "hi" : "en"}`;
+const qrSlug = onHome ? "main" : cp.slug;
+const qrSvgUrl = `/qr/${encodeURIComponent(qrSlug)}.svg?lang=${L}`;
+const qrPngUrl = `/qr/${encodeURIComponent(qrSlug)}.png?lang=${L}&dpi=1600&size=50`;
+const galleryRows = gallery || [];
+const quickCheckpoints = (checkpoints || []).filter(x => ["gate", "ramkola", "moran"].includes(x.slug)).slice(0, 3);
+const narration = onHome
+  ? (s.speechText?.[L] || [s.name?.[L], s.tagline?.[L], ...(s.about?.[L] || [])].filter(Boolean).join(". "))
+  : [currentName, cp.description?.[L], cp.history?.[L], cp.storyTitle?.[L], cp.story?.[L], cp.visitorTips?.[L]].filter(Boolean).join(". ");
+const pageTitle = onHome ? "Surajpur Virasat | Heritage & Nature Explorer" : `${currentName} | Surajpur Virasat`;
+const metrics = onHome ? [
+  { label: tr("Protected landscape", "संरक्षित क्षेत्र"), value: s.area || "608.51 sq km", icon: "trees" },
+  { label: tr("Established", "स्थापना"), value: s.established || "1978", icon: "calendar-days" },
+  { label: tr("District", "ज़िला"), value: "Surajpur, CG", icon: "map-pin" },
+  { label: tr("Key wildlife", "प्रमुख वन्यजीव"), value: tr("Elephants & Tigers", "हाथी एवं बाघ"), icon: "paw-print" }
+] : [
+  { label: tr("Destination", "गंतव्य"), value: tr("Surajpur district", "सूरजपुर ज़िला"), icon: "map-pin" },
+  { label: tr("Gallery", "फोटो गैलरी"), value: `${galleryRows.length} ${tr("photos", "तस्वीरें")}`, icon: "images" },
+  { label: tr("Railway station", "रेलवे स्टेशन"), value: stationCode, icon: "train-front" },
+  { label: tr("Distance", "दूरी"), value: railwayKm ? `~${railwayKm} km` : villageKm ? `~${villageKm} km*` : tr("Check route", "मार्ग देखें"), icon: "route" }
+];
+%>
+
+<header class="fixed top-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-b border-stone-200 dark:border-stone-800">
+  <div class="max-w-5xl mx-auto px-3.5 sm:px-6 h-14 sm:h-16 flex items-center justify-between gap-2">
+    <a href="/" class="flex items-center gap-2 min-w-0" aria-label="Surajpur Virasat home">
+      <span class="w-9 h-9 sm:w-10 sm:h-10 rounded-xl bg-gradient-to-tr from-emerald-800 to-emerald-500 flex items-center justify-center text-white shadow-md shrink-0"><img src="/images/surajpur-virasat-symbol.svg" alt="" class="w-8 h-8 rounded-lg"></span>
+      <span class="leading-tight min-w-0"><strong class="font-extrabold text-sm sm:text-base tracking-tight block text-stone-900 dark:text-white">Surajpur<span class="text-emerald-700 dark:text-emerald-400"> Virasat</span></strong><small class="text-[8px] sm:text-[9px] uppercase font-bold tracking-[.16em] text-stone-500 dark:text-stone-400">Heritage · Nature · Stories</small></span>
+    </a>
+    <div class="flex items-center gap-1.5 sm:gap-2 shrink-0">
+      <a href="/admin/login" class="hidden sm:inline-flex px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 text-xs font-semibold">Admin</a>
+      <button type="button" id="pitchOpen" class="hidden md:inline-flex px-2.5 py-1.5 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-600 dark:text-stone-300 text-xs font-medium items-center gap-1"><i data-lucide="presentation" class="w-3.5 h-3.5 text-amber-500"></i><span>Project</span></button>
+      <a href="<%= languageUrl %>" class="px-2.5 sm:px-3 py-1.5 rounded-lg bg-emerald-50 hover:bg-emerald-100 dark:bg-emerald-950 dark:hover:bg-emerald-900 text-emerald-800 dark:text-emerald-300 border border-emerald-200 dark:border-emerald-800 text-xs font-bold flex items-center gap-1"><i data-lucide="languages" class="w-3.5 h-3.5"></i><span><%= L === "en" ? "हिन्दी" : "English" %></span></a>
+      <button type="button" id="qrOpen" class="p-2 rounded-lg bg-stone-100 hover:bg-stone-200 dark:bg-stone-800 dark:hover:bg-stone-700 text-stone-700 dark:text-stone-300 border border-stone-200 dark:border-stone-700" title="QR code"><i data-lucide="qr-code" class="w-4 h-4"></i></button>
+      <button type="button" id="themeToggle" class="p-2 rounded-lg text-stone-500 hover:bg-stone-100 dark:text-stone-300 dark:hover:bg-stone-800" aria-label="Toggle theme"><i id="themeIcon" data-lucide="moon" class="w-4 h-4"></i></button>
+    </div>
+  </div>
+</header>
+
+<!-- Reference-style quick location strip. Visitors can move between all QR destinations without scanning again. -->
+<div class="mt-14 sm:mt-16 bg-emerald-950 text-emerald-100 border-b border-emerald-900 text-xs px-3 sm:px-4 sticky top-14 sm:top-16 z-30">
+  <div class="max-w-5xl mx-auto min-h-12 py-2 flex flex-wrap items-center justify-between gap-2">
+    <div class="flex items-center gap-2 shrink-0"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span class="text-[11px] sm:text-xs font-bold text-emerald-200"><%= tr("Explore locations", "स्थान चुनें") %></span></div>
+    <div class="flex items-center gap-1.5 flex-wrap">
+      <% quickCheckpoints.forEach(q => { %>
+        <a href="/location/<%= q.slug %>?lang=<%= L %>" class="px-2.5 py-1 rounded-full bg-emerald-900/80 hover:bg-emerald-800 border border-emerald-700 text-[10px] sm:text-[11px] font-semibold transition-colors"><%= q.name?.[L] || q.slug %></a>
+      <% }) %>
+    </div>
+    <label for="locationExplorer" class="sr-only"><%= tr("Choose a location", "स्थान चुनें") %></label>
+    <select id="locationExplorer" class="rounded-lg border border-emerald-700 bg-emerald-900 text-emerald-50 px-2.5 py-1.5 text-xs font-semibold max-w-[190px] sm:max-w-[260px]" aria-label="Explore another location">
+      <option value="/" <%= onHome ? "selected" : "" %>><%= tr("All Surajpur heritage", "सूरजपुर की सभी विरासतें") %></option>
+      <% (checkpoints || []).forEach(item => { %><option value="/location/<%= item.slug %>" <%= cp?.slug === item.slug ? "selected" : "" %>><%= item.name?.[L] || item.slug %></option><% }) %>
+    </select>
+  </div>
+</div>
+
+<main class="max-w-5xl mx-auto pb-24 md:pb-10">
+  <% if (cp && cp.active === false) { %><div class="mx-3 sm:mx-6 mt-3 rounded-xl border border-amber-300 bg-amber-50 text-amber-900 px-4 py-3 text-sm"><strong><%= tr("Notice:", "सूचना:") %></strong> <%= tr("This place is no longer listed in Explore, but this QR page remains available.", "यह स्थान अब Explore सूची में नहीं है, लेकिन इसका QR पृष्ठ उपलब्ध रहेगा।") %></div><% } %>
+
+  <!-- HERO: keep exactly four main visitor actions -->
+  <section class="relative w-full min-h-[470px] sm:h-[560px] flex items-end overflow-hidden bg-emerald-950">
+    <img id="heroImage" src="<%= heroImage %>" alt="<%= currentName %>" class="absolute inset-0 w-full h-full object-cover" fetchpriority="high">
+    <div class="absolute inset-0 bg-gradient-to-t from-black via-emerald-950/80 to-black/10"></div>
+    <div class="absolute top-4 left-3 right-3 sm:left-5 sm:right-5 z-10 flex flex-wrap items-center justify-between gap-2 text-white">
+      <span class="flex items-center gap-1.5 bg-black/60 backdrop-blur-md px-3 py-1.5 rounded-full border border-white/20 text-[10px] sm:text-xs font-semibold"><i data-lucide="shield-check" class="w-3.5 h-3.5 text-amber-300"></i><%= onHome ? tr("Heritage & Wildlife Explorer", "विरासत एवं वन्यजीव अन्वेषक") : tr("Surajpur Heritage Destination", "सूरजपुर विरासत स्थल") %></span>
+      <span class="flex items-center gap-1.5 bg-emerald-600/90 backdrop-blur-md px-3 py-1.5 rounded-full text-[10px] sm:text-xs font-semibold"><span class="w-1.5 h-1.5 rounded-full bg-white animate-pulse"></span><%= tr("Bilingual QR Guide", "द्विभाषी QR गाइड") %></span>
+    </div>
+    <div class="relative z-10 w-full max-w-3xl px-4 sm:px-8 pb-7 sm:pb-9 pt-24 text-white">
+      <p class="flex items-center gap-2 text-[11px] sm:text-sm font-bold tracking-wider uppercase text-emerald-200 mb-2"><i data-lucide="map-pin" class="w-4 h-4 text-amber-300"></i><%= onHome ? (s.district?.[L] || tr("Surajpur District, Chhattisgarh", "सूरजपुर जिला, छत्तीसगढ़")) : tr("You are exploring", "आप इस स्थान की जानकारी देख रहे हैं") %></p>
+      <h1 id="heroTitle" class="text-3xl sm:text-5xl md:text-6xl font-extrabold tracking-tight leading-tight mb-3 drop-shadow-md"><%= onHome ? tr("Discover Surajpur’s Heritage & Nature", "सूरजपुर की विरासत और प्रकृति को जानें") : currentName %></h1>
+      <p id="heroSubTitle" class="text-stone-100 text-sm sm:text-base md:text-lg leading-relaxed max-w-2xl mb-5"><%= currentDescription %></p>
+      <div class="grid grid-cols-2 sm:flex sm:flex-wrap items-center gap-2 sm:gap-3" aria-label="Main visitor actions">
+        <button type="button" id="audioButton" class="flex min-h-12 items-center justify-center gap-2 bg-gradient-to-r from-emerald-600 to-green-800 hover:from-emerald-500 hover:to-green-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl shadow-lg border border-emerald-300/30 active:scale-[.98] transition"><i id="audioIcon" data-lucide="volume-2" class="w-4 h-4"></i><span id="audioLabel"><%= tr("Listen Audio Tour", "ऑडियो गाइड सुनें") %></span></button>
+        <button type="button" class="flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30" data-current-directions data-destination="<%= destination %>"><i data-lucide="navigation" class="w-4 h-4 text-emerald-200"></i><span><%= tr("Directions", "रास्ता देखें") %></span></button>
+        <button type="button" id="sosOpen" class="flex min-h-12 items-center justify-center gap-2 bg-rose-600 hover:bg-rose-700 text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-rose-300/50 shadow-md"><i data-lucide="phone-call" class="w-4 h-4"></i><span>SOS</span></button>
+        <button type="button" id="shareButton" class="flex min-h-12 items-center justify-center gap-2 bg-white/15 hover:bg-white/25 backdrop-blur-md text-white font-bold text-xs sm:text-sm px-3.5 sm:px-5 py-3 rounded-xl border border-white/30"><i data-lucide="share-2" class="w-4 h-4"></i><span><%= tr("Share", "शेयर करें") %></span></button>
+      </div>
+      <div id="speechBanner" class="hidden mt-3 inline-flex items-center gap-2 bg-black/65 backdrop-blur-md border border-emerald-400/40 px-3 py-2 rounded-lg text-xs text-emerald-200" aria-live="polite"><span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span><span id="speechStatus"><%= tr("Audio guide is playing…", "ऑडियो गाइड चल रहा है…") %></span></div>
+    </div>
+    <div class="absolute bottom-2 right-4 text-[10px] sm:text-xs text-white/75 flex items-center gap-1"><i data-lucide="leaf" class="w-3.5 h-3.5"></i><%= tr("Discover nature. Respect heritage.", "प्रकृति जानें, विरासत का सम्मान करें।") %></div>
+  </section>
+
+  <!-- Reference metrics strip -->
+  <section class="relative z-20 px-3.5 sm:px-6 -mt-4">
+    <div class="bg-white/95 dark:bg-stone-900/95 backdrop-blur-xl rounded-2xl shadow-xl border border-stone-200 dark:border-stone-800 p-3 sm:p-5 grid grid-cols-2 sm:grid-cols-4 gap-3 sm:gap-4 text-center">
+      <% metrics.forEach((metric,index) => { %>
+        <div class="px-1 <%= index % 2 === 0 ? 'sm:border-r border-stone-200 dark:border-stone-700' : '' %>"><p class="text-[10px] sm:text-xs uppercase tracking-wider text-stone-500 dark:text-stone-400 font-bold"><%= metric.label %></p><p class="text-sm sm:text-lg font-extrabold text-stone-900 dark:text-white mt-1"><%= metric.value %></p></div>
+      <% }) %>
+    </div>
+  </section>
+
+  <!-- Desktop segmented tab bar -->
+  <nav class="hidden md:block sticky top-28 z-30 bg-stone-100/95 dark:bg-stone-950/95 backdrop-blur-md px-6 pt-5 pb-2 border-b border-stone-200 dark:border-stone-800">
+    <div class="flex items-center gap-2 overflow-x-auto hide-scrollbar">
+      <button type="button" class="ref-tab selected" data-tab="about"><i data-lucide="book-open"></i><span><%= tr("About & History", "परिचय एवं इतिहास") %></span></button>
+      <button type="button" class="ref-tab" data-tab="wildlife"><i data-lucide="paw-print"></i><span><%= tr("Flora & Fauna", "वन्यजीव एवं वनस्पति") %></span></button>
+      <button type="button" class="ref-tab" data-tab="rescue"><i data-lucide="heart-handshake"></i><span><%= tr("Ramkola Elephant Centre", "रामकोला हाथी केंद्र") %></span></button>
+      <button type="button" class="ref-tab" data-tab="gallery"><i data-lucide="image"></i><span><%= tr("Photo Gallery", "फोटो गैलरी") %></span></button>
+      <button type="button" class="ref-tab" data-tab="location"><i data-lucide="map"></i><span><%= tr("Map & Distance", "नक्शा एवं दूरी") %></span></button>
+    </div>
+  </nav>
+
+  <div class="px-3.5 sm:px-6 py-5 sm:py-6 space-y-5">
+    <!-- About / History panel -->
+    <section id="panel-about" class="ref-panel space-y-4 sm:space-y-6">
+      <% if (onHome) { %>
+        <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-7 shadow-sm border border-stone-200 dark:border-stone-800 space-y-3">
+          <h2 class="text-lg sm:text-2xl font-extrabold text-stone-900 dark:text-white flex items-center gap-2"><i data-lucide="trees" class="w-5 h-5 text-emerald-600"></i><%= tr("Sanctuary Background & Significance", "अभयारण्य की पृष्ठभूमि एवं महत्व") %></h2>
+          <% (s.about?.[L] || []).forEach(p => { %><p class="ref-copy"><%= p %></p><% }) %>
+        </article>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-3 sm:gap-4">
+          <% (s.geography || []).forEach(g => { %><article class="ref-card flex items-start gap-3"><span class="p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 shrink-0"><i data-lucide="<%= g.icon || 'trees' %>" class="w-6 h-6"></i></span><div><h3 class="font-extrabold text-base sm:text-lg text-stone-900 dark:text-white"><%= g.title?.[L] %></h3><p class="ref-copy"><%= g.description?.[L] %></p></div></article><% }) %>
+        </div>
+        <% if (s.tigerReserve?.title?.[L] || s.tigerReserve?.description?.[L]) { %><article class="rounded-2xl p-4 sm:p-6 border border-amber-200 dark:border-amber-900/50 bg-gradient-to-r from-amber-50 to-orange-50 dark:from-stone-900 dark:to-stone-800"><div class="flex items-start gap-3"><span class="p-3 rounded-xl bg-amber-500 text-white shrink-0"><i data-lucide="award" class="w-6 h-6"></i></span><div><h3 class="font-extrabold text-lg sm:text-xl text-stone-900 dark:text-white"><%= s.tigerReserve.title?.[L] %></h3><p class="ref-copy"><%= s.tigerReserve.description?.[L] %></p></div></div></article><% } %>
+      <% } else { %>
+        <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-7 shadow-sm border border-stone-200 dark:border-stone-800 space-y-3">
+          <h2 class="text-lg sm:text-2xl font-extrabold text-stone-900 dark:text-white flex items-center gap-2"><i data-lucide="book-open" class="w-5 h-5 text-emerald-600"></i><%= tr("About this place", "इस स्थान के बारे में") %></h2>
+          <% if (cp.overview?.[L]) { %><p class="ref-copy"><%= cp.overview[L] %></p><% } %>
+          <% if (cp.description?.[L]) { %><p class="ref-copy"><%= cp.description[L] %></p><% } %>
+          <% if (cp.history?.[L]) { %><div class="pt-3 border-t border-stone-200 dark:border-stone-700"><h3 class="font-extrabold text-lg"><i data-lucide="landmark" class="inline w-5 h-5 text-emerald-600 mr-1"></i><%= tr("History", "इतिहास") %></h3><p class="ref-copy"><%= cp.history[L] %></p></div><% } %>
+          <% if (cp.story?.[L]) { %><div class="rounded-xl p-4 bg-amber-50 dark:bg-amber-950/25 border border-amber-200 dark:border-amber-900/50"><h3 class="font-extrabold text-base"><i data-lucide="book-heart" class="inline w-5 h-5 text-amber-600 mr-1"></i><%= cp.storyTitle?.[L] || tr("Important story & local tradition", "महत्वपूर्ण कहानी एवं स्थानीय परंपरा") %></h3><p class="ref-copy"><%= cp.story[L] %></p></div><% } %>
+          <% if (cp.visitorTips?.[L]) { %><div class="rounded-xl p-4 bg-emerald-50 dark:bg-emerald-950/25 border border-emerald-200 dark:border-emerald-900/50"><h3 class="font-extrabold text-base"><i data-lucide="shield-check" class="inline w-5 h-5 text-emerald-600 mr-1"></i><%= tr("Visitor Guidance & Safety", "पर्यटक निर्देश एवं सुरक्षा") %></h3><p class="ref-copy"><%= cp.visitorTips[L] %></p></div><% } %>
+          <% if (cp.sources?.length) { %><div class="pt-3 border-t border-stone-200 dark:border-stone-700"><h3 class="font-extrabold text-base mb-2"><%= tr("Sources & References", "स्रोत एवं संदर्भ") %></h3><ul class="space-y-2 list-disc pl-5 text-sm"><% cp.sources.forEach(source => { %><li><a class="text-emerald-700 dark:text-emerald-300 underline break-all" href="<%= source.url %>" target="_blank" rel="noopener noreferrer"><%= source.title %></a></li><% }) %></ul></div><% } %>
+        </article>
+      <% } %>
+    </section>
+
+    <!-- Wildlife and Flora -->
+    <section id="panel-wildlife" class="ref-panel hidden space-y-4 sm:space-y-6">
+      <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200 dark:border-stone-800">
+        <h2 class="text-lg sm:text-2xl font-extrabold mb-2 flex items-center gap-2"><i data-lucide="paw-print" class="text-emerald-600"></i><%= tr("Prominent Wildlife Species", "प्रमुख वन्यजीव प्रजातियाँ") %></h2>
+        <p class="ref-copy mb-4"><%= tr("Wildlife records stored for the sanctuary. Species presence and sightings should be confirmed with the Forest Department.", "अभयारण्य के लिए उपलब्ध वन्यजीव रिकॉर्ड। प्रजातियों और दर्शन की पुष्टि वन विभाग से करें।") %></p>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
+          <% (wildlife || []).forEach(w => { %><article class="rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 bg-stone-50 dark:bg-stone-800/70"><% if (w.image) { %><img src="<%= w.image %>" alt="<%= w.name?.[L] %>" class="w-full h-36 object-cover" loading="lazy"><% } %><div class="p-3"><div class="flex flex-wrap items-start justify-between gap-2"><h3 class="font-extrabold"><%= w.name?.[L] %></h3><span class="text-xs italic text-emerald-700 dark:text-emerald-300"><%= w.scientificName %></span></div><p class="ref-copy"><%= w.description?.[L] %></p><% if (!w.contentVerified) { %><span class="inline-block mt-2 text-[11px] text-amber-700 dark:text-amber-300">● <%= tr("Verification pending", "पुष्टि लंबित") %></span><% } %></div></article><% }) %>
+        </div>
+      </article>
+      <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-6 shadow-sm border border-stone-200 dark:border-stone-800">
+        <h2 class="text-lg sm:text-2xl font-extrabold mb-3 flex items-center gap-2"><i data-lucide="sprout" class="text-emerald-600"></i><%= tr("Forest Types & Flora", "वन प्रकार एवं वनस्पति") %></h2>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3"><% (flora || []).forEach(f => { %><article class="p-4 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><h3 class="font-extrabold"><%= f.name?.[L] %></h3><% if (f.scientificName) { %><p class="text-sm italic text-emerald-700 dark:text-emerald-300"><%= f.scientificName %></p><% } %><p class="ref-copy"><%= f.description?.[L] %></p><% if (!f.contentVerified) { %><span class="text-xs text-amber-700 dark:text-amber-300"><%= tr("Verification pending", "पुष्टि लंबित") %></span><% } %></article><% }) %></div>
+      </article>
+    </section>
+
+    <!-- Ramkola centre panel -->
+    <section id="panel-rescue" class="ref-panel hidden space-y-4">
+      <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-7 border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+        <div class="flex items-center gap-3"><span class="p-3 rounded-2xl bg-emerald-100 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300"><i data-lucide="heart-handshake" class="w-7 h-7"></i></span><div><h2 class="text-lg sm:text-2xl font-extrabold"><%= s.ramkola?.title?.[L] || tr("Pingla Elephant Rescue & Rehabilitation Centre", "पिंगला हाथी बचाव एवं पुनर्वास केंद्र") %></h2><p class="text-sm text-emerald-700 dark:text-emerald-300 font-semibold"><%= s.ramkola?.subtitle?.[L] || tr("Elephant rescue and rehabilitation", "हाथी बचाव एवं पुनर्वास") %></p></div></div>
+        <% if (s.ramkola?.description?.[L]) { %><p class="ref-copy"><%= s.ramkola.description[L] %></p><% } %>
+        <% if (cp?.slug === "ramkola" && cp.overview?.[L]) { %><p class="ref-copy"><%= cp.overview[L] %></p><% } %>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3"><% (s.ramkola?.points || []).forEach(point => { %><div class="p-4 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700 text-center"><i data-lucide="<%= point.icon || 'heart' %>" class="w-6 h-6 text-emerald-600 mx-auto mb-2"></i><h3 class="font-extrabold"><%= point.title?.[L] %></h3><p class="ref-copy"><%= point.description?.[L] %></p></div><% }) %></div>
+        <p class="text-xs sm:text-sm text-amber-800 dark:text-amber-300 rounded-xl bg-amber-50 dark:bg-amber-950/30 border border-amber-200 dark:border-amber-900 p-3"><%= tr("Access to rescue and rehabilitation facilities may be restricted. Contact the Forest Department before planning a visit.", "बचाव एवं पुनर्वास केंद्र में प्रवेश प्रतिबंधित हो सकता है। यात्रा से पहले वन विभाग से संपर्क करें।") %></p>
+      </article>
+    </section>
+
+    <!-- Gallery panel -->
+    <section id="panel-gallery" class="ref-panel hidden space-y-4">
+      <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-sm">
+        <div class="flex flex-wrap items-end justify-between gap-3 mb-4"><div><h2 class="text-lg sm:text-2xl font-extrabold flex items-center gap-2"><i data-lucide="images" class="text-emerald-600"></i><%= tr("Photo Gallery", "फोटो गैलरी") %></h2><p class="ref-copy"><%= tr("Tap a photo to preview it in full size.", "किसी तस्वीर को बड़े आकार में देखने के लिए टैप करें।") %></p></div><span class="rounded-full bg-emerald-50 dark:bg-emerald-950 text-emerald-800 dark:text-emerald-200 px-3 py-1.5 text-xs font-extrabold"><%= galleryRows.length %> <%= tr("photos", "तस्वीरें") %></span></div>
+        <% if (galleryRows.length) { %>
+          <p class="text-xs sm:text-sm text-stone-500 dark:text-stone-400 mb-4"><%= tr("Images are shown with their source and photo-credit details. Illustrative images are not claimed to be photographs of this exact location.", "तस्वीरों के साथ स्रोत और श्रेय दिया गया है। संदर्भ चित्रों को इस सटीक स्थान पर लिया गया फोटो नहीं बताया गया है।") %></p>
+          <div class="grid grid-cols-2 md:grid-cols-3 gap-3 sm:gap-4">
+            <% galleryRows.forEach(item => { %><div class="ref-gallery-item"><button type="button" class="ref-gallery-tile" data-image="<%= item.image %>" data-caption="<%= item.caption?.[L] || currentName %>" data-credit="<%= [item.credit, item.license].filter(Boolean).join(' · ') %>" data-source-url="<%= item.sourceUrl || '' %>"><img src="<%= item.image %>" alt="<%= item.alt?.[L] || item.caption?.[L] || currentName %>" loading="lazy"><span><%= item.caption?.[L] || currentName %></span></button><p class="text-xs text-stone-500 dark:text-stone-400 mt-2 leading-relaxed"><%= item.credit || tr("Photo source", "फोटो स्रोत") %> · <%= item.license || "" %> <% if (item.sourceUrl) { %><a class="text-emerald-700 dark:text-emerald-300 underline" href="<%= item.sourceUrl %>" target="_blank" rel="noopener noreferrer"><%= tr("Source", "स्रोत") %></a><% } %></p></div><% }) %>
+          </div>
+        <% } else { %><div class="rounded-xl border border-dashed border-stone-300 dark:border-stone-700 p-9 text-center"><i data-lucide="image-plus" class="w-9 h-9 mx-auto text-stone-400 mb-2"></i><p class="font-bold"><%= tr("No photos have been added yet.", "अभी कोई फोटो नहीं जोड़ा गया है।") %></p><p class="ref-copy"><%= tr("The administrator can assign photos to this location from Admin → Gallery.", "व्यवस्थापक Admin → Gallery से तस्वीरें इस स्थान से जोड़ सकता है।") %></p></div><% } %>
+      </article>
+    </section>
+
+    <!-- Map and distance -->
+    <section id="panel-location" class="ref-panel hidden space-y-4">
+      <article class="bg-white dark:bg-stone-900 rounded-2xl p-4 sm:p-6 border border-stone-200 dark:border-stone-800 shadow-sm space-y-4">
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3"><div><h2 class="text-lg sm:text-2xl font-extrabold flex items-center gap-2"><i data-lucide="map-pinned" class="text-emerald-600"></i><%= tr("Location & Access Gateways", "स्थान एवं पहुँच मार्ग") %></h2><p class="ref-copy"><%= cp?.coordinates?.lat && cp?.coordinates?.lng ? `Coordinates: ${cp.coordinates.lat}, ${cp.coordinates.lng}` : (s.coordinates || tr("Surajpur District, Chhattisgarh", "सूरजपुर जिला, छत्तीसगढ़")) %></p></div><a href="<%= mapUrl %>" target="_blank" rel="noopener noreferrer" class="px-4 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white text-sm font-bold flex items-center justify-center gap-2"><i data-lucide="external-link" class="w-4 h-4"></i><%= tr("Open in Google Maps", "गूगल मैप्स में खोलें") %></a></div>
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-3">
+          <% if (onHome) { (s.distances || []).forEach(d => { %><div class="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><span class="text-xs text-stone-500 dark:text-stone-400 font-semibold"><%= d.label?.[L] %></span><p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300"><%= d.distance %></p><p class="ref-copy"><%= d.description?.[L] %></p></div><% }); %>
+          <% } else { %><div class="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><span class="text-xs text-stone-500 dark:text-stone-400 font-semibold"><%= tr("Nearest listed railway station", "निकटतम सूचीबद्ध रेलवे स्टेशन") %></span><p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300"><%= stationName %></p><p class="ref-copy"><%= stationCode %></p></div><div class="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><span class="text-xs text-stone-500 dark:text-stone-400 font-semibold"><%= railwayKm ? tr("Road distance", "सड़क दूरी") : tr("Distance reference", "दूरी का संदर्भ") %></span><p class="text-lg font-extrabold text-emerald-700 dark:text-emerald-300"><%= railwayKm ? `~${railwayKm} km` : villageKm ? `~${villageKm} km*` : tr("Not verified", "सत्यापित नहीं") %></p><p class="ref-copy"><%= railwayKm ? tr("Distance entered for this destination.", "इस गंतव्य के लिए दर्ज दूरी।") : villageKm ? tr("Village-level straight-line reference only; not this location's road distance.", "केवल गाँव-स्तरीय सीधी दूरी; इस स्थान की सड़क दूरी नहीं।") : tr("Use the live station route for the current road distance.", "वर्तमान सड़क दूरी के लिए लाइव स्टेशन मार्ग देखें।") %></p></div><div class="p-3.5 rounded-xl bg-stone-50 dark:bg-stone-800/70 border border-stone-200 dark:border-stone-700"><span class="text-xs text-stone-500 dark:text-stone-400 font-semibold"><%= tr("Best season", "सर्वोत्तम समय") %></span><p class="text-lg font-extrabold text-amber-700 dark:text-amber-300"><%= s.bestSeason?.[L] || tr("Check local conditions", "स्थानीय स्थिति देखें") %></p></div><% } %>
+        </div>
+        <% if (cp?.railway?.distanceBasis || cp?.railway?.note?.[L]) { %><p class="ref-copy"><%= cp.railway.note?.[L] || cp.railway.distanceBasis %></p><% } %>
+        <div class="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button type="button" class="ref-route-button" data-current-directions data-destination="<%= destination %>"><i data-lucide="locate-fixed" class="w-5 h-5"></i><span><strong><%= tr("Directions from my current location", "मेरी वर्तमान लोकेशन से रास्ता") %></strong><small><%= tr("Uses your phone location only after permission", "अनुमति मिलने पर ही फोन की लोकेशन उपयोग होगी") %></small></span></button>
+          <a href="<%= stationRoute %>" target="_blank" rel="noopener noreferrer" class="ref-route-button secondary"><i data-lucide="train-front" class="w-5 h-5"></i><span><strong><%= tr("Route from railway station", "रेलवे स्टेशन से रास्ता") %></strong><small><%= stationName %></small></span></a>
+        </div>
+        <div class="w-full h-64 sm:h-80 rounded-xl overflow-hidden border border-stone-200 dark:border-stone-700 shadow-inner"><iframe title="Map for <%= currentName %>" class="w-full h-full border-0" loading="lazy" referrerpolicy="no-referrer-when-downgrade" src="<%= mapEmbedUrl %>" allowfullscreen></iframe></div>
+      </article>
+    </section>
+  </div>
+
+  <footer class="px-4 sm:px-6 pt-3 pb-7 flex flex-col sm:flex-row justify-between gap-2 text-xs text-stone-500 dark:text-stone-400"><span>© <%= new Date().getFullYear() %> Surajpur Virasat</span><span><%= tr("Respect heritage and nature. Leave no litter.", "विरासत और प्रकृति का सम्मान करें। कचरा न फैलाएँ।") %></span></footer>
+</main>
+
+<!-- Mobile bottom navigation matching the reference layout -->
+<nav class="md:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 dark:bg-stone-900/95 backdrop-blur-md border-t border-stone-200 dark:border-stone-800 px-1.5 py-1.5 grid grid-cols-5 shadow-lg">
+  <button type="button" class="ref-bottom-tab selected" data-tab="about"><i data-lucide="book-open"></i><span><%= tr("About", "परिचय") %></span></button>
+  <button type="button" class="ref-bottom-tab" data-tab="wildlife"><i data-lucide="paw-print"></i><span><%= tr("Wildlife", "वन्यजीव") %></span></button>
+  <button type="button" class="ref-bottom-tab" data-tab="rescue"><i data-lucide="heart-handshake"></i><span><%= tr("Rescue", "रेस्क्यू") %></span></button>
+  <button type="button" class="ref-bottom-tab" data-tab="gallery"><i data-lucide="image"></i><span><%= tr("Photos", "फोटो") %></span></button>
+  <button type="button" class="ref-bottom-tab" data-tab="location"><i data-lucide="map"></i><span><%= tr("Map", "नक्शा") %></span></button>
+</nav>
+
+<!-- Project pitch modal from the provided reference structure -->
+<div id="pitchModal" class="ref-modal hidden" role="dialog" aria-modal="true" aria-label="Project overview"><div class="ref-modal-card max-w-2xl"><button type="button" class="ref-modal-close" data-close="pitchModal">×</button><div class="flex items-center gap-3 mb-5"><span class="p-3 rounded-xl bg-amber-500 text-white"><i data-lucide="presentation"></i></span><div><h2 class="text-xl sm:text-2xl font-extrabold"><%= tr("Surajpur Virasat Explorer", "सूरजपुर विरासत एक्सप्लोरर") %></h2><p class="text-sm text-stone-500 dark:text-stone-400"><%= tr("Bilingual QR heritage and nature guide", "द्विभाषी QR विरासत एवं प्रकृति गाइड") %></p></div></div><div class="grid sm:grid-cols-2 gap-3"><div class="p-4 rounded-xl bg-rose-50 dark:bg-rose-950/30"><strong><%= tr("Visitor challenge", "पर्यटक की समस्या") %></strong><ul class="list-disc pl-5 text-sm mt-2 space-y-1"><li><%= tr("Static boards offer limited information.", "स्थिर सूचना पट्टों पर सीमित जानकारी होती है।") %></li><li><%= tr("Language and accessibility can be barriers.", "भाषा और पहुँच में कठिनाई हो सकती है।") %></li></ul></div><div class="p-4 rounded-xl bg-emerald-50 dark:bg-emerald-950/30"><strong><%= tr("Digital guide", "डिजिटल गाइड") %></strong><ul class="list-disc pl-5 text-sm mt-2 space-y-1"><li><%= tr("Each QR opens its own location page.", "हर QR अपना स्थान पृष्ठ खोलता है।") %></li><li><%= tr("Visitors can explore other places without another scan.", "बिना दूसरा QR स्कैन किए अन्य स्थान देख सकते हैं।") %></li><li><%= tr("Audio, directions, SOS and photo galleries are built in.", "ऑडियो, रास्ता, SOS और फोटो गैलरी उपलब्ध हैं।") %></li></ul></div></div><div class="mt-5 flex justify-end"><button type="button" class="px-5 py-2.5 rounded-xl bg-emerald-700 hover:bg-emerald-800 text-white font-bold text-sm" data-close="pitchModal"><%= tr("Close", "बंद करें") %></button></div></div></div>
+
+<!-- SOS modal -->
+<div id="sosModal" class="ref-modal hidden" role="dialog" aria-modal="true" aria-label="Emergency contacts"><div class="ref-modal-card max-w-md text-center"><button type="button" class="ref-modal-close" data-close="sosModal">×</button><div class="w-14 h-14 mx-auto rounded-2xl bg-rose-500 text-white flex items-center justify-center mb-3"><i data-lucide="phone-call" class="w-7 h-7"></i></div><h2 class="text-xl font-extrabold"><%= tr("Wildlife Emergency SOS", "वन्यजीव आपातकालीन SOS") %></h2><p class="ref-copy"><%= tr("For immediate emergencies, call 112. Other forest contact details should be verified before relying on them.", "तत्काल आपात स्थिति में 112 पर कॉल करें। अन्य वन विभाग संपर्कों की पुष्टि करके ही उपयोग करें।") %></p><div class="space-y-2 mt-4 text-left"><a href="tel:112" class="ref-contact-row"><span><strong>Emergency Response</strong><small>Verified national emergency number</small></span><b>112</b></a><% (contacts || []).filter(contact => String(contact.phone || "").replace(/[^+\d]/g, "") !== "112").forEach(contact => { %><a href="tel:<%= String(contact.phone || '').replace(/[^+\d]/g, '') %>" class="ref-contact-row"><span><strong><%= contact.label?.[L] %></strong><small><%= contact.verified ? tr("Marked verified", "सत्यापित चिह्नित") : tr("Verify before relying on this contact", "उपयोग से पहले नंबर की पुष्टि करें") %></small></span><b><%= contact.phone %></b></a><% }) %></div></div></div>
+
+<!-- QR modal: preview + high-resolution downloads, generated by server routes -->
+<div id="qrModal" class="ref-modal hidden" role="dialog" aria-modal="true" aria-label="Page QR code"><div class="ref-modal-card max-w-sm text-center"><button type="button" class="ref-modal-close" data-close="qrModal">×</button><div class="inline-flex p-3 rounded-xl bg-emerald-50 dark:bg-emerald-950 text-emerald-700 dark:text-emerald-300 mb-2"><i data-lucide="qr-code" class="w-7 h-7"></i></div><h2 class="text-xl font-extrabold"><%= tr("QR code for this page", "इस पेज का QR कोड") %></h2><p class="ref-copy"><%= tr("Use SVG for sharp scalable printing or the 1600 DPI PNG for print workflows.", "बेहतर प्रिंट के लिए SVG या 1600 DPI PNG डाउनलोड करें।") %></p><div id="qrPreview" class="mx-auto my-4 p-3 bg-white rounded-xl border border-stone-200 w-fit"></div><p id="qrTargetUrl" class="text-xs font-mono break-all text-stone-500 dark:text-stone-400"><%= publicOrigin %><%= currentUrlPath %></p><div class="grid grid-cols-2 gap-2 mt-4"><button type="button" id="copyQrLink" class="py-2.5 rounded-xl bg-stone-100 dark:bg-stone-800 font-bold text-sm"><i data-lucide="copy" class="inline w-4 h-4 mr-1"></i><%= tr("Copy link", "लिंक कॉपी करें") %></button><a href="<%= qrSvgUrl %>" class="py-2.5 rounded-xl bg-emerald-700 text-white font-bold text-sm"><i data-lucide="download" class="inline w-4 h-4 mr-1"></i>SVG</a></div><a href="<%= qrPngUrl %>" class="mt-2 block py-2.5 rounded-xl border border-emerald-700 text-emerald-800 dark:text-emerald-300 font-bold text-sm">1600 DPI PNG · 50 mm</a></div></div>
+
+<!-- Gallery lightbox -->
+<div id="lightbox" class="ref-modal hidden" role="dialog" aria-modal="true" aria-label="Photo preview"><div class="ref-lightbox-card"><button type="button" class="ref-modal-close" data-close="lightbox">×</button><img id="lightboxImage" src="" alt="Photo preview"><p id="lightboxCaption" class="text-white font-bold mt-3"></p><p id="lightboxCredit" class="text-stone-300 text-sm mt-1"></p></div></div>
+<div id="toast" class="ref-toast" role="status" aria-live="polite"></div>
+
+<script>
+window.TP_CONFIG = <%- JSON.stringify({
+  lang: L,
+  title: currentName,
+  speechText: narration,
+  destination,
+  qrTargetUrl: `${publicOrigin}${currentUrlPath}?lang=${L}`,
+  isHome: onHome
+}).replace(/</g, "\\u003c") %>;
+</script>

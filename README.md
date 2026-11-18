@@ -23,8 +23,9 @@ Install:
 ## 2. Configure environment
 1. Rename `.env.example` to `.env`.
 2. Set `MONGO_URI` to your local or Atlas connection string.
-3. Change `SESSION_SECRET`, `ADMIN_EMAIL`, and `ADMIN_PASSWORD`.
+3. Change `SESSION_SECRET`.
 4. Optionally set `APP_BASE_URL` to your public website URL after deployment; leave it blank for local development.
+5. On the Windows network used during local Atlas development, set `USE_PUBLIC_DNS=true` only if Node.js SRV DNS lookups fail. Do not set this in Render.
 
 Example local MongoDB:
 ```
@@ -47,15 +48,15 @@ npm run enrich-content
 npm run dev
 ```
 
-- `npm run seed` is for a fresh database. It inserts starter content only into empty collections and creates the first admin account.
+- `npm run seed` is for a fresh database. It inserts starter content only into empty collections. It does not create a default administrator unless both `ADMIN_EMAIL` and `ADMIN_PASSWORD` are explicitly provided.
 - `npm run enrich-content` adds/updates the curated location histories, source references, railway notes and 20 gallery entries. It is safe to re-run for these known image URLs and checkpoint slugs, but run it before making your own edits to those same records.
-- For an existing database, keep the same `MONGO_URI`, take a database backup, and run only `npm run enrich-content`. Do not drop collections or reseed an existing database.
+- For an existing database, keep the same `MONGO_URI` and do not drop collections or reseed. Use the first-admin script below if the Atlas `Admin` collection is empty.
 
 Open:
 - Tourist website: http://localhost:3000
 - Admin login: http://localhost:3000/admin/login
 
-Admin credentials are the values in `.env`. The seed script creates the first admin only if it does not already exist. It inserts starter content only into collections that are empty and never overwrites an existing sanctuary profile. If you are continuing with an existing database, keep its `MONGO_URI`; do not reset or drop collections.
+Use the secure one-time `npm run admin:create` command below to create the first administrator in the Atlas database. The script refuses to create a duplicate account and does not modify existing content.
 
 ## 4. Production
 ```
@@ -65,9 +66,9 @@ For Render:
 - Create a **Web Service** from your Git repository.
 - Build command: `npm install`
 - Start command: `npm start`
-- Add `MONGO_URI`, `SESSION_SECRET`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` as environment variables. Set `APP_BASE_URL` to your final public URL (for example `https://your-service.onrender.com`) so printed QR codes keep using the correct domain.
+- Add `MONGO_URI` and `SESSION_SECRET` as environment variables. Set `APP_BASE_URL` to your final public URL (for example `https://your-service.onrender.com`) so printed QR codes keep using the correct domain. The admin is created separately with `npm run admin:create` from a trusted local terminal connected to Atlas.
 - Set `NODE_ENV=production`.
-- Use a persistent MongoDB Atlas database and allow Render's outbound IPs (or temporarily allow `0.0.0.0/0` in Atlas while testing, then tighten access where practical).
+- Use a persistent MongoDB Atlas database and add only the outbound IP ranges shown in the Render service's Connect → Outbound panel to Atlas Network Access. Do not use `0.0.0.0/0` for production.
 - Do not upload your `.env` file or commit database credentials to Git.
 - The service uses the `PORT` provided by Render automatically.
 
@@ -188,15 +189,45 @@ This repository is structured so its project files (`app.js`, `package.json`, an
 1. Push the contents of this project folder to a GitHub repository. Do not commit `.env`, `node_modules/`, database dumps, or credentials.
 2. In MongoDB Atlas, create a production database user and database, then allow the outbound IP addresses shown for your Render web service in Atlas Network Access. For a temporary connectivity test only, Atlas supports `0.0.0.0/0`; this exposes the cluster to connection attempts from any IP and should be replaced with narrower rules as soon as practical.
 3. In Render, choose **New → Blueprint** and connect the repository containing `render.yaml`, or choose **New → Web Service** with build command `npm install` and start command `npm start`. The blueprint creates a Free web service named `surajpur-virasat-explorer`.
-4. Add these environment variables in Render: `NODE_ENV=production`, `MONGO_URI` (Atlas connection string), `SESSION_SECRET` (long random value), `ADMIN_EMAIL`, and `ADMIN_PASSWORD`. Do not use the sample local `.env` values in production.
+4. Add these environment variables in Render: `NODE_ENV=production`, `MONGO_URI` (Atlas connection string), and `SESSION_SECRET` (long random value). Add `APP_BASE_URL` after Render assigns the service URL. Do not use the sample local `.env` values in production.
 5. Deploy. The service uses Render's `PORT`, binds to `0.0.0.0`, and exposes `/healthz` for health checks.
 6. After Render assigns the public `https://....onrender.com` URL, set `APP_BASE_URL` to that exact URL without a trailing slash and redeploy. Generate and print QR codes only after this value is set.
 7. Test `/healthz`, `/`, at least two `/location/<slug>` pages, `/admin/login`, and both QR download endpoints.
 
 ### Database content and admin account
 
-Use your existing Atlas database and preserve its data. If this is a brand-new empty Atlas database, run the project's seed/enrichment scripts from a trusted local terminal with `MONGO_URI` set to the production Atlas connection string: run `npm run seed` once to create initial content and the first admin, then `npm run enrich-content` to add the Surajpur Virasat location content and galleries. For an existing populated database, take a backup and run only `npm run enrich-content` if those additions are still required. Do not run these scripts repeatedly without reviewing the README's data-upsert behavior.
+Use your existing Atlas database and preserve its data. If this is a brand-new empty Atlas database, run `npm run seed` once and then `npm run enrich-content` from a trusted local terminal. Create the administrator separately with `npm run admin:create`. For an existing populated database, do not reseed or enrich content that is already present. Do not run scripts repeatedly without reviewing the data-upsert behavior.
 
 ### Free plan note
 
 Render Free web services spin down after 15 minutes without inbound traffic and can take about a minute to wake on the next request. Their filesystem is ephemeral. MongoDB Atlas is the persistent database; do not rely on writing visitor uploads to the Render local filesystem.
+
+
+## Reference-style visitor interface and first administrator
+
+The public home page and each QR destination now render through `views/home/explorer.ejs`. It follows the supplied reference structure: fixed brand header, language/theme/QR controls, location quick bar, large hero with four primary visitor actions, metric strip, desktop tabs, mobile bottom navigation, gallery lightbox, SOS and QR modals. All location, wildlife, flora, gallery, railway and emergency contact content is still loaded from MongoDB.
+
+### Create the first administrator in the existing Atlas database
+
+Do not run the seed command just to create an administrator. The first account is created with a dedicated one-time CLI script that refuses local MongoDB URIs and refuses to create a duplicate account. Ensure your local `.env` points to the Atlas `tamor_pingla` database first.
+
+In PowerShell from the project folder:
+
+```powershell
+$env:BOOTSTRAP_ADMIN_NAME = Read-Host "Admin name"
+$env:BOOTSTRAP_ADMIN_EMAIL = Read-Host "Admin email"
+$secure = Read-Host "New admin password (12+ characters)" -AsSecureString
+$bstr = [Runtime.InteropServices.Marshal]::SecureStringToBSTR($secure)
+try {
+  $env:BOOTSTRAP_ADMIN_PASSWORD = [Runtime.InteropServices.Marshal]::PtrToStringBSTR($bstr)
+  npm run admin:create
+} finally {
+  [Runtime.InteropServices.Marshal]::ZeroFreeBSTR($bstr)
+  Remove-Item Env:BOOTSTRAP_ADMIN_NAME,Env:BOOTSTRAP_ADMIN_EMAIL,Env:BOOTSTRAP_ADMIN_PASSWORD -ErrorAction SilentlyContinue
+  Remove-Variable secure -ErrorAction SilentlyContinue
+}
+```
+
+The script creates only the first admin if no admin exists. It hashes the password with bcrypt and never prints it. It does not update or delete any location, gallery, wildlife, flora or other content documents. After creation, use `/admin/login`.
+
+On Windows, the app uses Google DNS by default because this development network refused Node.js SRV queries. Set `USE_PUBLIC_DNS=false` in `.env` to use the Windows system resolver instead. Render runs on Linux and uses its default DNS resolver.

@@ -1,4 +1,9 @@
 require("dotenv").config();
+if (process.platform === "win32" && process.env.USE_PUBLIC_DNS !== "false") {
+  // The local Windows DNS resolver on the developer's network refused Node SRV queries.
+  // Render runs on Linux and therefore keeps the platform's default resolver.
+  require("node:dns").setServers(["8.8.8.8", "8.8.4.4"]);
+}
 const express = require("express");
 const mongoose = require("mongoose");
 const expressLayouts = require("express-ejs-layouts");

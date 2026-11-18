@@ -1,164 +1,196 @@
 (() => {
-  const $ = (selector, root = document) => root.querySelector(selector);
-  const $$ = (selector, root = document) => [...root.querySelectorAll(selector)];
-  const config = window.TP_CONFIG || { lang: "en", speechText: "" };
+  "use strict";
 
-  // Theme preference
-  const savedTheme = localStorage.getItem("tp-theme");
-  if (savedTheme === "dark") document.documentElement.classList.add("dark");
-  const themeButton = $("#themeToggle");
-  const updateThemeIcon = () => {
-    if (!themeButton) return;
-    themeButton.innerHTML = `<i data-lucide="${document.documentElement.classList.contains("dark") ? "sun" : "moon"}"></i>`;
+  const $ = (selector, root = document) => root.querySelector(selector);
+  const $$ = (selector, root = document) => Array.from(root.querySelectorAll(selector));
+  const config = window.TP_CONFIG || {};
+  const lang = config.lang === "hi" ? "hi" : "en";
+  const isHindi = lang === "hi";
+
+  function toast(message) {
+    const element = $("#toast");
+    if (!element) return;
+    element.textContent = message;
+    element.classList.add("show");
+    window.clearTimeout(window.__svToastTimer);
+    window.__svToastTimer = window.setTimeout(() => element.classList.remove("show"), 2800);
+  }
+
+  // Theme toggle follows the visitor's saved preference.
+  const themeToggle = $("#themeToggle");
+  const storedTheme = (() => {
+    try { return localStorage.getItem("surajpur-virasat-theme"); } catch (_) { return null; }
+  })();
+  if (storedTheme === "dark" || (!storedTheme && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches)) {
+    document.documentElement.classList.add("dark");
+  }
+  function updateThemeIcon() {
+    const icon = $("#themeIcon");
+    if (!icon) return;
+    icon.setAttribute("data-lucide", document.documentElement.classList.contains("dark") ? "sun" : "moon");
     window.lucide?.createIcons();
-  };
+  }
   updateThemeIcon();
-  themeButton?.addEventListener("click", () => {
+  themeToggle?.addEventListener("click", () => {
     const dark = document.documentElement.classList.toggle("dark");
-    localStorage.setItem("tp-theme", dark ? "dark" : "light");
+    try { localStorage.setItem("surajpur-virasat-theme", dark ? "dark" : "light"); } catch (_) { /* storage optional */ }
     updateThemeIcon();
   });
 
-  // Switch to another location without scanning another QR code.
+  // Location selector lets a visitor open another QR destination without scanning it.
   $("#locationExplorer")?.addEventListener("change", (event) => {
-    const target = event.target.value || "/";
-    const lang = event.target.dataset.lang || config.lang || "en";
+    const target = event.currentTarget.value || "/";
     window.location.href = `${target}${target.includes("?") ? "&" : "?"}lang=${lang}`;
   });
 
-  // Open a route from the visitor's current device location. Coordinates stay in the browser and are sent only to Google Maps after the visitor taps Directions.
-  $$ ("[data-current-directions]").forEach(button => button.addEventListener("click", () => {
-    const destination = button.dataset.destination || config.destination || "Tamor Pingla Wildlife Sanctuary, Surajpur, Chhattisgarh, India";
+  // Reference-style tab navigation for desktop tabs and the mobile bottom bar.
+  const tabNames = ["about", "wildlife", "rescue", "gallery", "location"];
+  function switchTab(tabName, shouldScroll = false) {
+    if (!tabNames.includes(tabName)) return;
+    tabNames.forEach((name) => {
+      const panel = $(`#panel-${name}`);
+      const active = name === tabName;
+      panel?.classList.toggle("hidden", !active);
+      $$(`[data-tab="${name}"]`).forEach((button) => {
+        button.classList.toggle("selected", active);
+        button.setAttribute("aria-pressed", active ? "true" : "false");
+      });
+    });
+    if (shouldScroll) {
+      const main = $(".ref-panel:not(.hidden)");
+      main?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+    window.lucide?.createIcons();
+  }
+  $$('[data-tab]').forEach((button) => button.addEventListener("click", () => switchTab(button.dataset.tab, true)));
+  const initialTab = location.hash.replace(/^#/, "");
+  if (tabNames.includes(initialTab)) switchTab(initialTab, false);
+
+  // Open the visitor's current-device route. GPS coordinates stay in the browser and are sent to Google Maps only after consent.
+  $$('[data-current-directions]').forEach((button) => button.addEventListener("click", () => {
+    const destination = button.dataset.destination || config.destination || "Surajpur District, Chhattisgarh, India";
     const fallbackUrl = `https://www.google.com/maps/dir/?api=1&destination=${encodeURIComponent(destination)}&travelmode=driving`;
     const routeTab = window.open("about:blank", "_blank");
     if (routeTab) routeTab.opener = null;
-    const openRoute = url => {
+    const openRoute = (url) => {
       if (routeTab && !routeTab.closed) routeTab.location.href = url;
       else window.location.href = url;
     };
     if (!navigator.geolocation || !window.isSecureContext) {
       openRoute(fallbackUrl);
-      toast(config.lang === "hi" ? "वर्तमान लोकेशन उपलब्ध नहीं; गूगल मैप्स में गंतव्य खोला गया है।" : "Current location is unavailable; the destination has been opened in Google Maps.");
+      toast(isHindi ? "वर्तमान लोकेशन उपलब्ध नहीं; गंतव्य का नक्शा खोला गया है।" : "Current location is unavailable; opening the destination in Google Maps.");
       return;
     }
-    toast(config.lang === "hi" ? "रास्ता दिखाने के लिए लोकेशन अनुमति दें…" : "Allow location access to calculate your route…");
-    navigator.geolocation.getCurrentPosition(position => {
+    toast(isHindi ? "रास्ता दिखाने के लिए लोकेशन अनुमति दें…" : "Allow location access to calculate your route…");
+    navigator.geolocation.getCurrentPosition((position) => {
       const origin = `${position.coords.latitude},${position.coords.longitude}`;
-      const url = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`;
-      openRoute(url);
+      openRoute(`https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origin)}&destination=${encodeURIComponent(destination)}&travelmode=driving`);
     }, () => {
       openRoute(fallbackUrl);
-      toast(config.lang === "hi" ? "लोकेशन अनुमति नहीं मिली; गंतव्य का नक्शा खोला गया है।" : "Location permission was unavailable; opening the destination map instead.");
+      toast(isHindi ? "लोकेशन अनुमति नहीं मिली; केवल गंतव्य खोला गया है।" : "Location permission was unavailable; opened the destination instead.");
     }, { enableHighAccuracy: false, timeout: 12000, maximumAge: 60000 });
   }));
 
-  // Browser speech guide. It automatically chooses a voice for the page language.
+  // Bilingual browser speech guide. Speech is queued sentence-by-sentence to avoid long-utterance truncation.
   const speechSupported = "speechSynthesis" in window && "SpeechSynthesisUtterance" in window;
   let speechState = "idle";
-  let activeUtterance = null;
-  let speechRunId = 0;
+  let speechChunks = [];
+  let speechIndex = 0;
+  let speechRun = 0;
 
-  function chooseVoice() {
-    if (!speechSupported) return null;
+  function splitNarration(text, maxLength = 210) {
+    const sentences = String(text || "").replace(/\s+/g, " ").match(/[^.!?।]+[.!?।]?/g) || [];
+    const result = [];
+    let current = "";
+    for (const raw of sentences) {
+      const sentence = raw.trim();
+      if (!sentence) continue;
+      if (sentence.length > maxLength) {
+        if (current) { result.push(current); current = ""; }
+        let part = "";
+        for (const word of sentence.split(/\s+/)) {
+          if (part && `${part} ${word}`.length > maxLength) { result.push(part); part = word; }
+          else part = part ? `${part} ${word}` : word;
+        }
+        if (part) result.push(part);
+      } else if (current && `${current} ${sentence}`.length > maxLength) {
+        result.push(current); current = sentence;
+      } else current = current ? `${current} ${sentence}` : sentence;
+    }
+    if (current) result.push(current);
+    return result;
+  }
+
+  function bestVoice() {
     const voices = speechSynthesis.getVoices();
-    const wanted = config.lang === "hi" ? "hi-IN" : "en-IN";
-    const prefix = config.lang === "hi" ? "hi" : "en";
-    const exact = voices.filter(voice => voice.lang?.toLowerCase() === wanted.toLowerCase());
-    const regional = voices.filter(voice => voice.lang?.toLowerCase().startsWith(prefix));
-    const preferred = list => list.find(voice => /natural|neural|google|microsoft/i.test(voice.name || ""));
+    const expected = isHindi ? "hi-IN" : "en-IN";
+    const prefix = isHindi ? "hi" : "en";
+    const exact = voices.filter((voice) => voice.lang?.toLowerCase() === expected.toLowerCase());
+    const regional = voices.filter((voice) => voice.lang?.toLowerCase().startsWith(prefix));
+    const preferred = (items) => items.find((voice) => /natural|neural|google|microsoft/i.test(voice.name || ""));
     return preferred(exact) || exact[0] || preferred(regional) || regional[0] || null;
   }
 
-  function splitNarration(text, maxLength = 220) {
-    const sentences = text.match(/[^.!?।]+[.!?।]?/g) || [text];
-    const chunks = [];
-    let current = "";
-    for (const sentence of sentences) {
-      const clean = sentence.trim();
-      if (!clean) continue;
-      if (clean.length > maxLength) {
-        if (current) { chunks.push(current); current = ""; }
-        let part = "";
-        for (const word of clean.split(/\s+/)) {
-          if (part && (part + " " + word).length > maxLength) {
-            chunks.push(part);
-            part = word;
-          } else {
-            part = part ? `${part} ${word}` : word;
-          }
-        }
-        if (part) chunks.push(part);
-        continue;
-      }
-      if (current && (current + " " + clean).length > maxLength) {
-        chunks.push(current);
-        current = clean;
-      } else {
-        current = current ? `${current} ${clean}` : clean;
-      }
-    }
-    if (current) chunks.push(current);
-    return chunks.length ? chunks : [text];
-  }
-
-  function setSpeechState(state) {
-    speechState = state;
+  function setSpeechState(next) {
+    speechState = next;
     const label = $("#audioLabel");
     const icon = $("#audioIcon");
-    const button = $("#audioButton");
     const banner = $("#speechBanner");
     const status = $("#speechStatus");
-    const isHindi = config.lang === "hi";
-    if (label) {
-      label.textContent = state === "playing"
-        ? (isHindi ? "ऑडियो रोकें" : "Pause audio")
-        : state === "paused" ? (isHindi ? "जारी रखें" : "Resume audio")
-        : (isHindi ? "ऑडियो गाइड सुनें" : "Listen Audio Tour");
-    }
-    if (icon) icon.setAttribute("data-lucide", state === "playing" ? "pause" : state === "paused" ? "play" : "volume-2");
-    if (button) button.setAttribute("aria-pressed", state === "playing" ? "true" : "false");
-    banner?.classList.toggle("hidden", state === "idle");
-    if (status) status.textContent = state === "paused"
-      ? (isHindi ? "ऑडियो रुका हुआ है" : "Audio paused")
-      : (isHindi ? "ऑडियो गाइड चल रहा है" : "Audio guide is playing");
+    if (label) label.textContent = next === "playing"
+      ? (isHindi ? "ऑडियो रोकें" : "Pause Audio Tour")
+      : next === "paused" ? (isHindi ? "जारी रखें" : "Resume Audio Tour")
+      : (isHindi ? "ऑडियो गाइड सुनें" : "Listen Audio Tour");
+    if (icon) icon.setAttribute("data-lucide", next === "playing" ? "pause" : next === "paused" ? "play" : "volume-2");
+    banner?.classList.toggle("hidden", next === "idle");
+    if (status) status.textContent = next === "paused"
+      ? (isHindi ? "ऑडियो रुका हुआ है" : "Audio is paused")
+      : (isHindi ? "ऑडियो गाइड चल रहा है…" : "Audio guide is playing…");
     window.lucide?.createIcons();
   }
 
-  function startNarration() {
-    if (!speechSupported) return toast(config.lang === "hi" ? "इस ब्राउज़र में ऑडियो सुविधा उपलब्ध नहीं है।" : "Audio narration is not supported by this browser.");
-    const text = String(config.speechText || "").replace(/\s+/g, " ").trim();
-    if (!text) return toast(config.lang === "hi" ? "इस पेज के लिए ऑडियो जानकारी उपलब्ध नहीं है।" : "No narration has been added for this page yet.");
+  function speakNext(run) {
+    if (run !== speechRun) return;
+    if (speechIndex >= speechChunks.length) {
+      setSpeechState("idle");
+      return;
+    }
+    const utterance = new SpeechSynthesisUtterance(speechChunks[speechIndex]);
+    utterance.lang = isHindi ? "hi-IN" : "en-IN";
+    utterance.rate = 0.92;
+    utterance.pitch = 1;
+    const voice = bestVoice();
+    if (voice) utterance.voice = voice;
+    utterance.onend = () => {
+      if (run !== speechRun) return;
+      speechIndex += 1;
+      speakNext(run);
+    };
+    utterance.onerror = (event) => {
+      if (run !== speechRun || event.error === "canceled" || event.error === "interrupted") return;
+      speechRun += 1;
+      speechSynthesis.cancel();
+      setSpeechState("idle");
+      toast(isHindi ? "ऑडियो चलाने में समस्या आई।" : "The audio guide could not be played.");
+    };
+    speechSynthesis.speak(utterance);
+  }
 
-    speechRunId += 1;
-    const runId = speechRunId;
+  function startNarration() {
+    if (!speechSupported) {
+      toast(isHindi ? "इस ब्राउज़र में ऑडियो सुविधा उपलब्ध नहीं है।" : "Audio narration is not supported by this browser.");
+      return;
+    }
+    speechChunks = splitNarration(config.speechText);
+    if (!speechChunks.length) {
+      toast(isHindi ? "इस पेज के लिए ऑडियो जानकारी उपलब्ध नहीं है।" : "No audio description is available for this page yet.");
+      return;
+    }
+    speechRun += 1;
+    speechIndex = 0;
     speechSynthesis.cancel();
-    const voice = chooseVoice();
-    const chunks = splitNarration(text);
-    chunks.forEach((chunk, index) => {
-      const utterance = new SpeechSynthesisUtterance(chunk);
-      utterance.lang = config.lang === "hi" ? "hi-IN" : "en-IN";
-      utterance.rate = 0.91;
-      utterance.pitch = 1;
-      if (voice) utterance.voice = voice;
-      utterance.onend = () => {
-        if (runId !== speechRunId) return;
-        if (index === chunks.length - 1) {
-          activeUtterance = null;
-          setSpeechState("idle");
-        }
-      };
-      utterance.onerror = () => {
-        if (runId !== speechRunId) return;
-        speechRunId += 1;
-        speechSynthesis.cancel();
-        activeUtterance = null;
-        setSpeechState("idle");
-        toast(config.lang === "hi" ? "ऑडियो चलाने में समस्या आई।" : "The audio guide could not be played.");
-      };
-      if (index === 0) activeUtterance = utterance;
-      speechSynthesis.speak(utterance);
-    });
     setSpeechState("playing");
+    speakNext(speechRun);
   }
 
   $("#audioButton")?.addEventListener("click", () => {
@@ -169,25 +201,61 @@
     } else if (speechState === "paused" && speechSynthesis.paused) {
       speechSynthesis.resume();
       setSpeechState("playing");
+    } else startNarration();
+  });
+  window.addEventListener("pagehide", () => { if (speechSupported) speechSynthesis.cancel(); });
+
+  // Modals: pitch, emergency contacts, QR and image lightbox.
+  function openModal(id) { $(`#${id}`)?.classList.remove("hidden"); }
+  function closeModal(id) { $(`#${id}`)?.classList.add("hidden"); }
+  $("#pitchOpen")?.addEventListener("click", () => openModal("pitchModal"));
+  $("#sosOpen")?.addEventListener("click", () => openModal("sosModal"));
+  $$('[data-close]').forEach((button) => button.addEventListener("click", () => closeModal(button.dataset.close)));
+  $$(".ref-modal").forEach((modal) => modal.addEventListener("click", (event) => {
+    if (event.target === modal) modal.classList.add("hidden");
+  }));
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape") $$(".ref-modal").forEach((modal) => modal.classList.add("hidden"));
+  });
+
+  // QR modal: on-screen QR preview plus server-generated print-quality SVG / 1600-DPI PNG links.
+  $("#qrOpen")?.addEventListener("click", () => {
+    openModal("qrModal");
+    const box = $("#qrPreview");
+    if (!box) return;
+    box.replaceChildren();
+    const target = config.qrTargetUrl || location.href;
+    if (window.QRCode) {
+      new QRCode(box, {
+        text: target,
+        width: 220,
+        height: 220,
+        colorDark: "#052e16",
+        colorLight: "#ffffff",
+        correctLevel: QRCode.CorrectLevel.H
+      });
     } else {
-      startNarration();
+      box.textContent = isHindi ? "QR पूर्वावलोकन उपलब्ध नहीं" : "QR preview is unavailable";
+    }
+  });
+  $("#copyQrLink")?.addEventListener("click", async () => {
+    const target = config.qrTargetUrl || location.href;
+    try {
+      await navigator.clipboard.writeText(target);
+      toast(isHindi ? "QR लिंक कॉपी हो गया।" : "QR link copied.");
+    } catch (_) {
+      const input = document.createElement("textarea");
+      input.value = target;
+      document.body.appendChild(input);
+      input.select();
+      const ok = document.execCommand("copy");
+      input.remove();
+      toast(ok ? (isHindi ? "लिंक कॉपी हो गया।" : "Link copied.") : (isHindi ? "कॉपी नहीं हो सका।" : "Could not copy the link."));
     }
   });
 
-  // Modals
-  function openModal(id) { $("#" + id)?.classList.remove("hidden"); }
-  function closeModal(id) { $("#" + id)?.classList.add("hidden"); }
-  $("#sosOpen")?.addEventListener("click", () => openModal("sosModal"));
-  $$ ("[data-close]").forEach(button => button.addEventListener("click", () => closeModal(button.dataset.close)));
-  $$(".modal-backdrop").forEach(backdrop => backdrop.addEventListener("click", event => {
-    if (event.target === backdrop) backdrop.classList.add("hidden");
-  }));
-  document.addEventListener("keydown", event => {
-    if (event.key === "Escape") $$(".modal-backdrop").forEach(modal => modal.classList.add("hidden"));
-  });
-
-  // Gallery lightbox
-  $$(".gallery-tile").forEach(tile => tile.addEventListener("click", () => {
+  // Gallery lightbox with photo credits and original source links.
+  $$(".ref-gallery-tile").forEach((tile) => tile.addEventListener("click", () => {
     const image = $("#lightboxImage");
     const caption = $("#lightboxCaption");
     const credit = $("#lightboxCredit");
@@ -195,54 +263,48 @@
     if (caption) caption.textContent = tile.dataset.caption || "";
     if (credit) {
       credit.replaceChildren();
-      credit.append(document.createTextNode(tile.dataset.credit ? `Photo credit: ${tile.dataset.credit}` : ""));
-      const sourceUrl = tile.dataset.sourceUrl || "";
-      if (sourceUrl) {
-        credit.append(document.createTextNode(" · "));
+      if (tile.dataset.credit) credit.append(document.createTextNode(tile.dataset.credit));
+      if (tile.dataset.sourceUrl) {
+        if (credit.textContent) credit.append(document.createTextNode(" · "));
         const link = document.createElement("a");
-        link.href = sourceUrl;
+        link.href = tile.dataset.sourceUrl;
         link.target = "_blank";
         link.rel = "noopener noreferrer";
-        link.textContent = "Source / licence";
+        link.textContent = isHindi ? "स्रोत / लाइसेंस" : "Source / licence";
         credit.append(link);
       }
     }
     openModal("lightbox");
   }));
 
-  // Share the current page. Fall back to copying the link when native sharing is unavailable.
+  // Native share when supported, otherwise copy the current URL.
   $("#shareButton")?.addEventListener("click", async () => {
-    const data = { title: document.title, text: $("h1")?.textContent?.trim() || document.title, url: location.href };
+    const shareData = {
+      title: document.title,
+      text: $("#heroTitle")?.textContent?.trim() || document.title,
+      url: location.href
+    };
     try {
       if (navigator.share) {
-        await navigator.share(data);
+        await navigator.share(shareData);
       } else if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(location.href);
-        toast(config.lang === "hi" ? "लिंक कॉपी हो गया।" : "Link copied.");
+        toast(isHindi ? "लिंक कॉपी हो गया।" : "Page link copied.");
       } else {
-        const temporary = document.createElement("textarea");
-        temporary.value = location.href;
-        temporary.style.position = "fixed";
-        temporary.style.opacity = "0";
-        document.body.appendChild(temporary);
-        temporary.select();
+        const input = document.createElement("textarea");
+        input.value = location.href;
+        input.style.position = "fixed";
+        input.style.opacity = "0";
+        document.body.appendChild(input);
+        input.select();
         const copied = document.execCommand("copy");
-        temporary.remove();
-        toast(copied ? (config.lang === "hi" ? "लिंक कॉपी हो गया।" : "Link copied.") : "Could not copy the link.");
+        input.remove();
+        toast(copied ? (isHindi ? "लिंक कॉपी हो गया।" : "Page link copied.") : (isHindi ? "लिंक कॉपी नहीं हो सका।" : "Could not copy the page link."));
       }
     } catch (error) {
-      if (error.name !== "AbortError") toast(config.lang === "hi" ? "शेयर नहीं हो पाया।" : "Could not share this link.");
+      if (error?.name !== "AbortError") toast(isHindi ? "शेयर नहीं हो पाया।" : "Could not share this page.");
     }
   });
-
-  function toast(message) {
-    const element = $("#toast");
-    if (!element) return;
-    element.textContent = message;
-    element.classList.add("show");
-    clearTimeout(window.__tpToastTimer);
-    window.__tpToastTimer = setTimeout(() => element.classList.remove("show"), 2600);
-  }
 
   window.lucide?.createIcons();
 })();

@@ -21,17 +21,19 @@ async function seed() {
     for (const [Model, rows] of [[Wildlife,data.wildlife],[Flora,data.flora],[Gallery,data.gallery],[Checkpoint,data.checkpoints],[EmergencyContact,data.contacts]]) {
       if (await Model.countDocuments() === 0) await Model.insertMany(rows);
     }
-    const email = (process.env.ADMIN_EMAIL || "admin@tamorpingla.local").toLowerCase();
-    let admin = await Admin.findOne({ email });
-    if (!admin) {
-      const password = process.env.ADMIN_PASSWORD || "ChangeThisPassword123!";
-      admin = await Admin.create({
-        name: process.env.ADMIN_NAME || "Forest Admin",
-        email,
-        password: await bcrypt.hash(password, 12)
-      });
-      console.log(`Admin created: ${email}`);
-      if (!process.env.ADMIN_PASSWORD) console.warn("Default password in use. Change ADMIN_PASSWORD in .env and reseed or update the admin password.");
+    if (process.env.ADMIN_EMAIL && process.env.ADMIN_PASSWORD) {
+      const email = process.env.ADMIN_EMAIL.trim().toLowerCase();
+      const existingAdmin = await Admin.findOne({ email });
+      if (!existingAdmin) {
+        await Admin.create({
+          name: process.env.ADMIN_NAME || "Forest Admin",
+          email,
+          password: await bcrypt.hash(process.env.ADMIN_PASSWORD, 12)
+        });
+        console.log(`Admin created: ${email}`);
+      }
+    } else {
+      console.log("Admin creation skipped. Use `npm run admin:create` to create the first administrator securely.");
     }
     console.log("Seed completed. Existing collections were preserved where they already contained data.");
     await mongoose.disconnect();

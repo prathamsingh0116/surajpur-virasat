@@ -1,16 +1,22 @@
 const QRCode = require("qrcode");
 const Checkpoint = require("../models/Checkpoint");
+const Sanctuary = require("../models/Sanctuary");
 const { addPngDpiMetadata } = require("../utils/pngDpi");
 
 function getTargetUrl(req, slug, lang) {
   const base = process.env.APP_BASE_URL || `${req.protocol}://${req.get("host")}`;
-  const target = new URL(`/location/${encodeURIComponent(slug)}`, base);
+  const target = new URL(slug === "main" ? "/" : `/location/${encodeURIComponent(slug)}`, base);
   target.searchParams.set("lang", lang);
   return target.toString();
 }
 
 async function getCheckpoint(req, res) {
-  const checkpoint = await Checkpoint.findOne({ slug: req.params.slug, active: true }).lean();
+  const slug = String(req.params.slug || "").toLowerCase();
+  if (slug === "main") {
+    const mainPage = await Sanctuary.exists({ slug: "main" });
+    if (mainPage) return { slug: "main" };
+  }
+  const checkpoint = await Checkpoint.findOne({ slug }).lean();
   if (!checkpoint) {
     res.status(404).type("text/plain").send("Active QR location not found.");
     return null;
